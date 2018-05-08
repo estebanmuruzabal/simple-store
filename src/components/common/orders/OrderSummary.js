@@ -2,17 +2,13 @@
  * Imports
  */
 import React from 'react';
-import {FormattedMessage, FormattedNumber} from 'react-intl';
-
-// Flux
-import IntlStore from '../../../stores/Application/IntlStore';
+import { FormattedMessage, FormattedNumber, injectIntl, intlShape } from 'react-intl';
+import PropTypes from 'prop-types';
 
 // Required components
 import Breakpoint from '../../core/Breakpoint';
 import Text from '../../common/typography/Text';
 
-// Translation data for this component
-import intlData from './OrderSummary.intl';
 
 /**
  * Component
@@ -20,7 +16,8 @@ import intlData from './OrderSummary.intl';
 class OrderSummary extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Component Lifecycle ***//
@@ -38,7 +35,7 @@ class OrderSummary extends React.Component {
         //
         // Helper methods & variables
         //
-        let intlStore = this.context.getStore(IntlStore);
+        let locale = this.context.intl.locale;
 
         //
         // Return
@@ -49,23 +46,17 @@ class OrderSummary extends React.Component {
                     <div className="order-summary__row order-summary__item-labels">
                         <div className="order-summary__list-name">
                             <Text size="small">
-                                <FormattedMessage
-                                    message={intlStore.getMessage(intlData, 'name')}
-                                    locales={intlStore.getCurrentLocale()} />
+                                <FormattedMessage id="orderSummaryName" />
                             </Text>
                         </div>
                         <div className="order-summary__list-quantity-price">
                             <Text size="small">
-                                <FormattedMessage
-                                    message={intlStore.getMessage(intlData, 'quantityAndPrice')}
-                                    locales={intlStore.getCurrentLocale()} />
+                                <FormattedMessage id="quantityAndPrice" />
                             </Text>
                         </div>
                         <div className="order-summary__list-total">
                             <Text size="small">
-                                <FormattedMessage
-                                    message={intlStore.getMessage(intlData, 'total')}
-                                    locales={intlStore.getCurrentLocale()} />
+                                <FormattedMessage id="total" />
                             </Text>
                         </div>
                     </div>
@@ -75,17 +66,17 @@ class OrderSummary extends React.Component {
                                 <div className="order-summary__list-name">
                                     <Breakpoint point="handhelds">
                                         <Text size="small">
-                                            {intlStore.getMessage(product.details.name)}
+                                            {product.details.name[locale]}
                                         </Text>
                                     </Breakpoint>
                                     <Breakpoint point="medium-screens">
                                         <Text>
-                                            {intlStore.getMessage(product.details.name)}
+                                            {product.details.name[locale]}
                                         </Text>
                                     </Breakpoint>
                                     <Breakpoint point="wide-screens">
                                         <Text>
-                                            {intlStore.getMessage(product.details.name)}
+                                            {product.details.name[locale]}
                                         </Text>
                                     </Breakpoint>
                                 </div>
@@ -118,9 +109,7 @@ class OrderSummary extends React.Component {
                     <div className="order-summary__row">
                         <div className="order-summary__totals-label">
                             <Text>
-                                <FormattedMessage
-                                    message={intlStore.getMessage(intlData, 'subTotal')}
-                                    locales={intlStore.getCurrentLocale()} />
+                                <FormattedMessage id="subTotal" />
                             </Text>
                         </div>
                         <div className="order-summary__totals-value">
@@ -135,9 +124,7 @@ class OrderSummary extends React.Component {
                     <div className="order-summary__row">
                         <div className="order-summary__totals-label">
                             <Text>
-                                <FormattedMessage
-                                    message={intlStore.getMessage(intlData, 'shipping')}
-                                    locales={intlStore.getCurrentLocale()} />
+                                <FormattedMessage id="shipping" />
                             </Text>
                         </div>
                         <div className="order-summary__totals-value">
@@ -156,9 +143,7 @@ class OrderSummary extends React.Component {
                     <div className="order-summary__row">
                         <div className="order-summary__totals-label">
                             <Text weight="bold">
-                                <FormattedMessage
-                                    message={intlStore.getMessage(intlData, 'total')}
-                                    locales={intlStore.getCurrentLocale()} />
+                                <FormattedMessage id="total" />
                             </Text>
                         </div>
                         <div className="order-summary__totals-value">

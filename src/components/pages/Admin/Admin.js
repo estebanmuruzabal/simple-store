@@ -2,7 +2,9 @@
  * Imports
  */
 import React from 'react';
-import {RouteHandler} from 'react-router';
+import { renderRoutes } from 'react-router-config';
+import { injectIntl, intlShape } from 'react-intl';
+import PropTypes from 'prop-types';
 
 import config from '../../../config';
 
@@ -15,24 +17,22 @@ import AuthenticatedComponent from '../../core/AuthenticatedComponent';
 import Heading from '../../common/typography/Heading';
 import MainNavigation from '../../common/navigation/MainNavigation';
 
-// Translation data for this component
-import intlData from './Admin.intl';
-
 /**
  * Component
  */
 class Admin extends React.Component {
 
     static contextTypes = {
-        executeAction: React.PropTypes.func.isRequired,
-        getStore: React.PropTypes.func.isRequired
+        executeAction: PropTypes.func.isRequired,
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Page Title and Snippets ***//
 
     static pageTitleAndSnippets = function (context) {
         return {
-            title: `[ADMIN] ${config.app.title}`
+            title: `[ADMIN] ${config.app.title[context.getStore(IntlStore).getCurrentLocale()]}`
         }
     };
 
@@ -53,17 +53,17 @@ class Admin extends React.Component {
     //*** Template ***//
 
     render() {
-
-        let intlStore = this.context.getStore(IntlStore);
+        let intl = this.context.intl;
+        let locale = intl.locale;
 
         // Links
         const links = [
-            {name: intlStore.getMessage(intlData, 'dashboard'), to: 'adm-dashboard'},
-            {name: intlStore.getMessage(intlData, 'orders'), to: 'adm-orders'},
-            {name: intlStore.getMessage(intlData, 'customers'), to: 'adm-customers'},
-            {name: intlStore.getMessage(intlData, 'collections'), to: 'adm-collections'},
-            {name: intlStore.getMessage(intlData, 'products'), to: 'adm-products'},
-            {name: intlStore.getMessage(intlData, 'contents'), to: 'adm-contents'}
+            {name: intl.formatMessage({id: 'dashboard'}), to: `/${locale}/adm`},
+            {name: intl.formatMessage({id: 'orders'}), to:  `/${locale}/adm/orders`},
+            {name: intl.formatMessage({id: 'customers'}), to:  `/${locale}/adm/customers`},
+            {name: intl.formatMessage({id: 'collections'}), to:  `/${locale}/adm/collections`},
+            {name: intl.formatMessage({id: 'products'}), to:  `/${locale}/adm/products`},
+            {name: intl.formatMessage({id: 'contents'}), to:  `/${locale}/adm/contents`}
         ];
 
         // Return
@@ -78,7 +78,7 @@ class Admin extends React.Component {
                     </div>
                 </div>
                 <div className="admin-container">
-                    <RouteHandler />
+                    {renderRoutes(this.props.route.routes)}
                 </div>
             </div>
         );

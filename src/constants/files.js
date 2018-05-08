@@ -1,6 +1,6 @@
-import keyMirror from 'react/lib/keyMirror';
+import keymirror from 'keymirror';
 
-export default keyMirror({
+export default keymirror({
     FILES_UPLOAD: null,
     FILES_UPLOAD_SUCCESS: null,
     FILES_UPLOAD_ERROR: null

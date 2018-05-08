@@ -2,10 +2,9 @@
  * Imports
  */
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import PropTypes from 'prop-types';
 
-// Flux
-import IntlStore from '../../../stores/Application/IntlStore';
 
 // Required components
 import Button from '../../common/buttons/Button';
@@ -13,11 +12,8 @@ import InlineItems from '../../common/forms/InlineItems';
 import InputField from '../../common/forms/InputField';
 import Text from '../../common/typography/Text';
 
-// Translation data for this component
-import intlData from './CheckoutCustomerDetails.intl';
-
 // Instantiate logger
-let debug = require('debug')('nicistore');
+let debug = require('debug')('simple-store');
 
 /**
  * Component
@@ -25,7 +21,8 @@ let debug = require('debug')('nicistore');
 class CheckoutCustomerDetails extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Initial State ***//
@@ -67,17 +64,17 @@ class CheckoutCustomerDetails extends React.Component {
 
     handleSaveClick = () => {
 
-        let intlStore = this.context.getStore(IntlStore);
+        let intl = this.context.intl;
 
         // Client-side validations
         let fieldErrors = {};
 
         if (!this.state.name) {
-            fieldErrors['customer.name'] = intlStore.getMessage(intlData, 'fieldRequired');
+            fieldErrors['customer.name'] = intl.formatMessage({id: 'fieldRequired'});
         }
 
         if (!this.state.email) {
-            fieldErrors['customer.email'] = intlStore.getMessage(intlData, 'fieldRequired');
+            fieldErrors['customer.email'] = intl.formatMessage({id: 'fieldRequired'});
         }
 
         this.setState({fieldErrors: fieldErrors});
@@ -86,7 +83,7 @@ class CheckoutCustomerDetails extends React.Component {
         if (Object.keys(fieldErrors).length === 0) {
             this.props.onDetailsSubmit({
                 email: this.state.email,
-                name: this.state.name
+                name: this.state.name,
             });
         }
     };
@@ -94,19 +91,23 @@ class CheckoutCustomerDetails extends React.Component {
     //*** Template ***//
 
     render() {
-        let intlStore = this.context.getStore(IntlStore);
+        let intl = this.context.intl;
         return (
             <div className="checkout-customer-details">
                 {this.props.editing && !this.props.user ?
                     <div className="checkout-customer-details__form">
                         <div className="checkout-customer-details__item">
                             <InlineItems>
-                                <InputField label={intlStore.getMessage(intlData, 'name')}
+                                <InputField label={intl.formatMessage({id: 'fullName'})}
                                             labelWeight="normal"
                                             value={this.state.name}
                                             onChange={this.handleInputChange.bind(null, 'name')}
                                             error={this.state.fieldErrors['customer.name']} />
-                                <InputField label={intlStore.getMessage(intlData, 'email')}
+                            </InlineItems>
+                        </div>
+                        <div className="checkout-customer-details__item">
+                            <InlineItems>
+                                <InputField label={intl.formatMessage({id: 'email'})}
                                             labelWeight="normal"
                                             value={this.state.email}
                                             onChange={this.handleInputChange.bind(null, 'email')}
@@ -120,9 +121,7 @@ class CheckoutCustomerDetails extends React.Component {
                                     <Button type="primary"
                                             onClick={this.handleSaveClick}
                                             loading={this.props.loading}>
-                                        <FormattedMessage
-                                            message={intlStore.getMessage(intlData, 'save')}
-                                            locales={intlStore.getCurrentLocale()} />
+                                        <FormattedMessage id="saveButton" />
                                     </Button>
                                 </div>
                             </InlineItems>
@@ -138,13 +137,13 @@ class CheckoutCustomerDetails extends React.Component {
                         </div>
                         {!this.props.user ?
                             <div className="checkout-customer-details__actions">
-                                <div className="checkout-customer-details__edit" onClick={this.props.onEditClick}>
-                                    <Text weight="bold">
-                                        <FormattedMessage
-                                            message={intlStore.getMessage(intlData, 'edit')}
-                                            locales={intlStore.getCurrentLocale()} />
-                                    </Text>
-                                </div>
+                                <Button className="checkout-customer-details__edit"
+                                        type="default"
+                                        fontSize="small"
+                                        onClick={this.props.onEditClick}
+                                        loading={this.props.loading}>
+                                    <FormattedMessage id="editButton" />
+                                </Button>
                             </div>
                             :
                             null

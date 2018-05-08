@@ -3,11 +3,11 @@
  */
 import React from 'react';
 import connectToStores from 'fluxible-addons-react/connectToStores';
-import {FormattedMessage} from 'react-intl';
+import { FormattedMessage } from 'react-intl';
+import PropTypes from 'prop-types';
 
 // Flux
 import FileUploadStore from '../../../stores/Files/FileUploadStore';
-import IntlStore from '../../../stores/Application/IntlStore';
 
 import uploadFile from '../../../actions/Admin/uploadFile';
 
@@ -15,12 +15,10 @@ import uploadFile from '../../../actions/Admin/uploadFile';
 import FormLabel from '../../common/forms/FormLabel';
 import ImageLibrary from '../../common/images/ImageLibrary';
 import ImageUpload from '../../common/images/ImageUpload';
-
-// Translation data for this component
-import intlData from './ImageLibraryManager.intl';
+import Text from '../../common/typography/Text';
 
 // Instantiate logger
-let debug = require('debug')('nicistore');
+let debug = require('debug')('simple-store');
 
 /**
  * Component
@@ -28,8 +26,8 @@ let debug = require('debug')('nicistore');
 class ImageLibraryManager extends React.Component {
 
     static contextTypes = {
-        executeAction: React.PropTypes.func.isRequired,
-        getStore: React.PropTypes.func.isRequired
+        executeAction: PropTypes.func.isRequired,
+        getStore: PropTypes.func.isRequired,
     };
 
     //*** Initial State ***//
@@ -73,7 +71,7 @@ class ImageLibraryManager extends React.Component {
 
     handleImageSubmit = (file) => {
         this.context.executeAction(uploadFile, {
-            resource: 'products',
+            resource: this.props.resource,
             file: file
         });
     };
@@ -81,12 +79,10 @@ class ImageLibraryManager extends React.Component {
     //*** Template ***//
 
     render() {
-        let intlStore = this.context.getStore(IntlStore);
         return (
             <div className="image-library-manager">
                 <FormLabel>
-                    <FormattedMessage message={intlStore.getMessage(intlData, 'gallery')}
-                                      locales={intlStore.getCurrentLocale()} />
+                    <FormattedMessage id="gallery" />
                 </FormLabel>
                 <div className="image-library-manager__gallery">
                     <div className="image-library-manager__upload">
@@ -98,6 +94,13 @@ class ImageLibraryManager extends React.Component {
                                       onChange={this.props.onChange} />
                     </div>
                 </div>
+                {this.props.error ?
+                    <div className="input-field__error">
+                        <Text size="small">{this.props.error}</Text>
+                    </div>
+                    :
+                    null
+                }
             </div>
         );
     }

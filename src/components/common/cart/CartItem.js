@@ -2,11 +2,11 @@
  * Imports
  */
 import React from 'react';
-import {FormattedMessage, FormattedNumber} from 'react-intl';
-import {Link} from 'react-router';
+import { FormattedMessage, FormattedNumber, injectIntl, intlShape } from 'react-intl';
+import {Link} from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 // Flux
-import IntlStore from '../../../stores/Application/IntlStore';
 import triggerDrawer from '../../../actions/Application/triggerDrawer';
 
 // Required components
@@ -14,7 +14,7 @@ import QuantitySelector from '../forms/QuantitySelector';
 import Text from '../typography/Text';
 
 // Instantiate logger
-let debug = require('debug')('nicistore');
+let debug = require('debug')('simple-store');
 
 /**
  * Component
@@ -22,8 +22,9 @@ let debug = require('debug')('nicistore');
 class CartItem extends React.Component {
 
     static contextTypes = {
-        executeAction: React.PropTypes.func.isRequired,
-        getStore: React.PropTypes.func.isRequired
+        executeAction: PropTypes.func.isRequired,
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Initial State ***//
@@ -53,18 +54,14 @@ class CartItem extends React.Component {
 
     render() {
 
-        let intlStore = this.context.getStore(IntlStore);
         let product = this.props.product.details;
-        let linkParams = {
-            locale: intlStore.getCurrentLocale(),
-            productId: product.id
-        };
+        let locale = this.context.intl.locale;
 
         return (
             <div className="cart-item">
                 <div className="cart-item__frame">
                     <Link className="cart-item__link"
-                          to="product" params={linkParams}
+                          to={`/${locale}/products/${product.id}`}
                           onClick={this.handleLinkClick}>
                         <img className="cart-item__image" src={product.images && product.images.length > 0 ? `//${product.images[0].url}` : this.state.placeholderImage} />
                     </Link>
@@ -73,10 +70,9 @@ class CartItem extends React.Component {
                     <div className="name">
                         <Text size="small">
                             <Link className="cart-item__link"
-                                  to="product" params={linkParams}
+                                  to={`/${locale}/products/${product.id}`}
                                   onClick={this.handleLinkClick}>
-                                <FormattedMessage message={intlStore.getMessage(product.name)}
-                                                  locales={intlStore.getCurrentLocale()} />
+                                  {product.name[locale]}
                             </Link>
                         </Text>
                     </div>

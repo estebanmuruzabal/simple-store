@@ -4,8 +4,8 @@
 .footer {
     display: flex;
     justify-content: center;
-    padding: 40px 0 40px 0;
-    border-top: 3px dashed $color-heading;
+    padding: 40px 0 20px 0;
+    border-top: 1px solid $color-heading;
     background-color: $color-secondary;
 }
 
@@ -135,8 +135,4 @@
     display: flex;
     justify-content: center;
     margin-top: 40px;
-
-    & > span {
-        color: $color-primary;
-    }
 }

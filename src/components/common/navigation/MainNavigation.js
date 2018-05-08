@@ -2,10 +2,8 @@
  * Imports
  */
 import React from 'react';
-import {Link} from 'react-router';
-
-// Flux
-import IntlStore from '../../../stores/Application/IntlStore';
+import {Link} from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 /**
  * Component
@@ -13,7 +11,7 @@ import IntlStore from '../../../stores/Application/IntlStore';
 class MainNavigation extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired
     };
 
     //*** Component Lifecycle ***//
@@ -28,9 +26,6 @@ class MainNavigation extends React.Component {
 
     render() {
 
-        // Base route params
-        let routeParams = {locale: this.context.getStore(IntlStore).getCurrentLocale()};
-
         // Return
         return (
             <div className="main-navigation">
@@ -39,7 +34,7 @@ class MainNavigation extends React.Component {
                         {this.props.links.map(function (link, idx) {
                             return (
                                 <li key={idx} className="main-navigation__item">
-                                    <Link to={link.to} params={Object.assign(link.params || {}, routeParams)}>
+                                    <Link to={link.to}>
                                         {link.name}
                                     </Link>
                                 </li>

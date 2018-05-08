@@ -3,15 +3,16 @@
  */
 import React from 'react';
 import connectToStores from 'fluxible-addons-react/connectToStores';
-import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import {Link} from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 import config from '../../../../config';
 
 // Flux
+import IntlStore from '../../../../stores/Application/IntlStore';
 import CollectionsStore from '../../../../stores/Collections/CollectionsStore';
 import ContentDetailsStore from '../../../../stores/Contents/ContentDetailsStore';
-import IntlStore from '../../../../stores/Application/IntlStore';
 
 import fetchContentAndCheckIfFound from '../../../../actions/Contents/fetchContentAndCheckIfFound';
 import updateContent from '../../../../actions/Admin/updateContent';
@@ -32,8 +33,6 @@ import ToggleSwitch from '../../../common/buttons/ToggleSwitch';
 import AdminContentsArticle from './TypeForms/AdminContentsArticle';
 import AdminContentsBanner from './TypeForms/AdminContentsBanner';
 
-// Translation data for this component
-import intlData from './AdminContentsEdit.intl';
 
 /**
  * Component
@@ -41,8 +40,9 @@ import intlData from './AdminContentsEdit.intl';
 class AdminContentsEdit extends React.Component {
 
     static contextTypes = {
-        executeAction: React.PropTypes.func.isRequired,
-        getStore: React.PropTypes.func.isRequired
+        executeAction: PropTypes.func.isRequired,
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Initial State ***//
@@ -66,7 +66,7 @@ class AdminContentsEdit extends React.Component {
         require('./AdminContentsEdit.scss');
 
         // Request required data
-        this.context.executeAction(fetchContentAndCheckIfFound, this.props.params.contentId);
+        this.context.executeAction(fetchContentAndCheckIfFound, this.props.match.params.contentId);
     }
 
     componentWillReceiveProps(nextProps) {
@@ -158,8 +158,8 @@ class AdminContentsEdit extends React.Component {
         //
         // Helper methods & variables
         //
-        let intlStore = this.context.getStore(IntlStore);
-        let routeParams = {locale: this.context.getStore(IntlStore).getCurrentLocale()}; // Base route params
+        let intl = this.context.intl;
+        let locale = intl.locale;
 
         // Stuff that won't work if we are in "404 Not Found", thus, no content object
         if (this.state.content) {
@@ -183,9 +183,7 @@ class AdminContentsEdit extends React.Component {
                 } else {
                     return (
                         <Text className="admin-contents-edit__unsupported-type">
-                            <FormattedMessage
-                                message={intlStore.getMessage(intlData, 'unsupportedType')}
-                                locales={intlStore.getCurrentLocale()} />
+                            <FormattedMessage id="unsupportedType" />
                         </Text>
                     );
                 }
@@ -201,9 +199,7 @@ class AdminContentsEdit extends React.Component {
                     <div className="admin-contents-edit__title">
                         <div className="admin-contents-edit__title-text">
                             <Heading size="medium">
-                                <FormattedMessage
-                                    message={intlStore.getMessage(intlData, 'title')}
-                                    locales={intlStore.getCurrentLocale()} />
+                                <FormattedMessage id="adminContentsEditHeader" />
                             </Heading>
                         </div>
                         {this.state.content ?
@@ -220,19 +216,15 @@ class AdminContentsEdit extends React.Component {
                     {this.state.content ?
                         <div className="admin-contents-edit__toolbar">
                             <div className="admin-contents-edit__toolbar-item">
-                                <Link to="adm-contents" params={routeParams}>
+                                <Link to={`/:locale/adm/contents`} >
                                     <Button type="default" disabled={this.state.loading}>
-                                        <FormattedMessage
-                                            message={intlStore.getMessage(intlData, 'back')}
-                                            locales={intlStore.getCurrentLocale()} />
+                                        <FormattedMessage id="backButton" />
                                     </Button>
                                 </Link>
                             </div>
                             <div className="admin-contents-edit__toolbar-item">
                                 <Button type="primary" onClick={this.handleSaveClick} disabled={this.state.loading}>
-                                    <FormattedMessage
-                                        message={intlStore.getMessage(intlData, 'save')}
-                                        locales={intlStore.getCurrentLocale()} />
+                                    <FormattedMessage id="saveButton" />
                                 </Button>
                             </div>
                         </div>
@@ -247,7 +239,7 @@ class AdminContentsEdit extends React.Component {
                         <div className="admin-contents-edit__common">
                             <div className="admin-contents-edit__left-column">
                                 <div className="admin-contents-edit__form-item">
-                                    <ToggleSwitch label={intlStore.getMessage(intlData, 'enabled')}
+                                    <ToggleSwitch label={intl.formatMessage({id: 'enabledHeading'})}
                                                   enabled={this.state.content.enabled === true}
                                                   onChange={this.handleEnabledChange} />
                                 </div>
@@ -255,16 +247,14 @@ class AdminContentsEdit extends React.Component {
                                     <div className="admin-contents-edit__checkbox-inline">
                                         <div className="admin-contents-edit__checkbox-inline-label">
                                             <FormLabel>
-                                                <FormattedMessage
-                                                    message={intlStore.getMessage(intlData, 'sections')}
-                                                    locales={intlStore.getCurrentLocale()} />
+                                                <FormattedMessage id="sections" />
                                             </FormLabel>
                                         </div>
                                         <div className="admin-contents-edit__checkbox-inline-items">
-                                            <Checkbox label={intlStore.getMessage(intlData, 'homepage')}
+                                            <Checkbox label={intl.formatMessage({id: 'homepageCheckbox'})}
                                                       onChange={this.handleSectionChange.bind(null, 'homepage')}
                                                       checked={this.state.content.tags && this.state.content.tags.indexOf('homepage') !== -1} />
-                                            <Checkbox label={intlStore.getMessage(intlData, 'productPage')}
+                                            <Checkbox label={intl.formatMessage({id: 'productPageCheckbox'})}
                                                       onChange={this.handleSectionChange.bind(null, 'productPage')}
                                                       checked={this.state.content.tags && this.state.content.tags.indexOf('productPage') !== -1} />
                                         </div>
@@ -273,18 +263,17 @@ class AdminContentsEdit extends React.Component {
                                 <div className="admin-contents-edit__form-item">
                                     <InputField label={
                                                     <div>
-                                                        <FormattedMessage
-                                                            message={intlStore.getMessage(intlData, 'name')}
-                                                            locales={intlStore.getCurrentLocale()} />
+                                                        <FormattedMessage id="name" />
                                                         &nbsp;({this.state.selectedLocale})
                                                     </div>
                                                 }
                                                 onChange={this.handleNameChange.bind(null, this.state.selectedLocale)}
-                                                value={this.state.content.name[this.state.selectedLocale]}
+                                                value={this.state.content.name[this.state.selectedLocale] || ''}
                                                 error={this.state.fieldErrors[`name.${this.state.selectedLocale}`]} />
                                 </div>
                                 <div className="admin-contents-edit__form-item">
                                     <ImageLibraryManager images={this.state.content.images}
+                                                         resource="contents"
                                                          onChange={this.handleImageLibraryChange} />
                                 </div>
                             </div>
@@ -293,16 +282,14 @@ class AdminContentsEdit extends React.Component {
                                     <CollectionPicker collections={this.state.categories}
                                                       checked={this.state.content.collections}
                                                       onChange={this.handleCollectionPickerChange}>
-                                        <FormattedMessage message={intlStore.getMessage(intlData, 'categories')}
-                                                          locales={intlStore.getCurrentLocale()} />
+                                        <FormattedMessage id="categories" />
                                     </CollectionPicker>
                                 </div>
                                 <div className="admin-contents-edit__form-item">
                                     <CollectionPicker collections={this.state.collections}
                                                       checked={this.state.content.collections}
                                                       onChange={this.handleCollectionPickerChange}>
-                                        <FormattedMessage message={intlStore.getMessage(intlData, 'collections')}
-                                                          locales={intlStore.getCurrentLocale()} />
+                                        <FormattedMessage id="collections" />
                                     </CollectionPicker>
                                 </div>
                             </div>

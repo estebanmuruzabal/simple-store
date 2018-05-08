@@ -3,13 +3,13 @@
  */
 import React from 'react';
 import connectToStores from 'fluxible-addons-react/connectToStores';
-import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import {Link} from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 // Flux
 import CollectionDetailsStore from '../../../../stores/Collections/CollectionDetailsStore';
 import CollectionsStore from '../../../../stores/Collections/CollectionsStore';
-import IntlStore from '../../../../stores/Application/IntlStore';
 
 import fetchCollectionAndCheckIfFound from '../../../../actions/Collections/fetchCollectionAndCheckIfFound';
 import updateCollection from '../../../../actions/Admin/updateCollection';
@@ -27,11 +27,9 @@ import Textarea from '../../../common/forms/Textarea';
 import TreeMenu from '../../../common/navigation/TreeMenu';
 import ToggleSwitch from '../../../common/buttons/ToggleSwitch';
 
-// Translation data for this component
-import intlData from './AdminCollectionsEdit.intl';
 
 // Instantiate logger
-let debug = require('debug')('nicistore');
+let debug = require('debug')('simple-store');
 
 /**
  * Component
@@ -39,14 +37,15 @@ let debug = require('debug')('nicistore');
 class AdminCollectionsEdit extends React.Component {
 
     static contextTypes = {
-        executeAction: React.PropTypes.func.isRequired,
-        getStore: React.PropTypes.func.isRequired
+        executeAction: PropTypes.func.isRequired,
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Required Data ***//
 
     static fetchData = function (context, params, query, done) {
-        context.executeAction(fetchCollectionAndCheckIfFound, params.collectionId, done);
+        return context.executeAction(fetchCollectionAndCheckIfFound, params.collectionId, done);
     };
 
     //*** Initial State ***//
@@ -138,16 +137,19 @@ class AdminCollectionsEdit extends React.Component {
 
     handleSaveClick = () => {
 
-        let intlStore = this.context.getStore(IntlStore);
+        let intl = this.context.intl;
 
         // Client-side validations
         this.setState({fieldErrors: {}});
         let fieldErrors = {};
-        if (!this.state.collection.name.en) {
-            fieldErrors.nameEN = intlStore.getMessage(intlData, 'fieldRequired');
+        if (!this.state.collection.name.uk) {
+            fieldErrors.nameUA = intl.formatMessage({id: 'fieldRequired'});
         }
-        if (!this.state.collection.name.pt) {
-            fieldErrors.namePT = intlStore.getMessage(intlData, 'fieldRequired');
+        if (!this.state.collection.name.ru) {
+            fieldErrors.nameRU = intl.formatMessage({id: 'fieldRequired'});
+        }
+        if (!this.state.collection.name.en) {
+            fieldErrors.nameEN = intl.formatMessage({id: 'fieldRequired'});
         }
         this.setState({fieldErrors: fieldErrors});
 
@@ -176,13 +178,12 @@ class AdminCollectionsEdit extends React.Component {
         //
         // Helper methods & variables
         //
-
-        let intlStore = this.context.getStore(IntlStore);
-        let routeParams = {locale: this.context.getStore(IntlStore).getCurrentLocale()}; // Base route params
+        let intl = this.context.intl;
+        let locale = intl.locale;
 
         let collectionTypeOptions = [
-            {name: intlStore.getMessage(intlData, 'category'), value: 'category'},
-            {name: intlStore.getMessage(intlData, 'collection'), value: 'collection'}
+            {name: intl.formatMessage({id: 'category'}), value: 'category'},
+            {name: intl.formatMessage({id: 'collection'}), value: 'collection'}
         ];
 
         let selectedOption;
@@ -207,27 +208,21 @@ class AdminCollectionsEdit extends React.Component {
                 <div className="admin-collections-edit__header">
                     <div className="admin-collections-edit__title">
                         <Heading size="medium">
-                            <FormattedMessage
-                                message={intlStore.getMessage(intlData, 'title')}
-                                locales={intlStore.getCurrentLocale()} />
+                            <FormattedMessage id="editCollectionsHeader" />
                         </Heading>
                     </div>
                     {this.state.collection ?
                         <div className="admin-collections-edit__toolbar">
                             <div className="admin-collections-edit__toolbar-item">
-                                <Link to="adm-collections" params={routeParams}>
+                                <Link to={`/${locale}/adm/collections`} >
                                     <Button type="default" disabled={this.state.loading}>
-                                        <FormattedMessage
-                                            message={intlStore.getMessage(intlData, 'back')}
-                                            locales={intlStore.getCurrentLocale()} />
+                                        <FormattedMessage id="backButton" />
                                     </Button>
                                 </Link>
                             </div>
                             <div className="admin-collections-edit__toolbar-item">
                                 <Button type="primary" onClick={this.handleSaveClick} disabled={this.state.loading}>
-                                    <FormattedMessage
-                                        message={intlStore.getMessage(intlData, 'save')}
-                                        locales={intlStore.getCurrentLocale()} />
+                                    <FormattedMessage id="saveButton" />
                                 </Button>
                             </div>
                         </div>
@@ -241,12 +236,12 @@ class AdminCollectionsEdit extends React.Component {
                     <div className="admin-collections-edit__form">
                         <div className="admin-collections-edit__left-column">
                             <div className="admin-collection-edit__form-item">
-                                <ToggleSwitch label={intlStore.getMessage(intlData, 'enabled')}
+                                <ToggleSwitch label={intl.formatMessage({id: 'enabledHeading'})}
                                               enabled={this.state.collection.enabled === true}
                                               onChange={this.handleEnabledChange} />
                             </div>
                             <div className="admin-collection-edit__form-item">
-                                <Select label={intlStore.getMessage(intlData, 'type')}
+                                <Select label={intl.formatMessage({id: 'type'})}
                                         placeholder
                                         options={collectionTypeOptions}
                                         onChange={this.handleTypeChange}
@@ -256,52 +251,64 @@ class AdminCollectionsEdit extends React.Component {
                                 <div className="admin-collection-edit__checkbox-inline">
                                     <div className="admin-collection-edit__checkbox-inline-label">
                                         <FormLabel>
-                                            <FormattedMessage
-                                                message={intlStore.getMessage(intlData, 'sections')}
-                                                locales={intlStore.getCurrentLocale()} />
+                                            <FormattedMessage id="sections" />
                                         </FormLabel>
                                     </div>
                                     <div className="admin-collection-edit__checkbox-inline-items">
-                                        <Checkbox label={intlStore.getMessage(intlData, 'mainNavigation')}
+                                        <Checkbox label={intl.formatMessage({id: 'mainNavigation'})}
                                                   onChange={this.handleSectionChange.bind(null, 'mainNavigation')}
                                                   checked={this.state.collection.tags.indexOf('mainNavigation') !== -1} />
-                                        <Checkbox label={intlStore.getMessage(intlData, 'homepage')}
+                                        <Checkbox label={intl.formatMessage({id: 'homepageCheckbox'})}
                                                   onChange={this.handleSectionChange.bind(null, 'homepage')}
                                                   checked={this.state.collection.tags.indexOf('homepage') !== -1} />
-                                        <Checkbox label={intlStore.getMessage(intlData, 'homepageFeatured')}
+                                        <Checkbox label={intl.formatMessage({id: 'homepageFeatured'})}
                                                   onChange={this.handleSectionChange.bind(null, 'homepageFeatured')}
                                                   checked={this.state.collection.tags.indexOf('homepageFeatured') !== -1} />
                                     </div>
                                 </div>
                             </div>
                             <div className="admin-collection-edit__form-item">
-                                <InputField label={intlStore.getMessage(intlData, 'name') + ' (EN)'}
+                                <InputField label={intl.formatMessage({id: 'name'}) + ' (UA)'}
+                                            onChange={this.handleNameChange.bind(null, 'uk')}
+                                            value={this.state.collection.name.uk}
+                                            error={fieldError('nameUA')} />
+                            </div>
+                            <div className="admin-collection-edit__form-item">
+                                <InputField label={intl.formatMessage({id: 'name'}) + ' (RU)'}
+                                            onChange={this.handleNameChange.bind(null, 'ru')}
+                                            value={this.state.collection.name.ru}
+                                            error={fieldError('nameRU')} />
+                            </div>
+                            <div className="admin-collection-edit__form-item">
+                                <InputField label={intl.formatMessage({id: 'name'}) + ' (EN)'}
                                             onChange={this.handleNameChange.bind(null, 'en')}
                                             value={this.state.collection.name.en}
                                             error={fieldError('nameEN')} />
                             </div>
                             <div className="admin-collection-edit__form-item">
-                                <InputField label={intlStore.getMessage(intlData, 'name') + ' (PT)'}
-                                            onChange={this.handleNameChange.bind(null, 'pt')}
-                                            value={this.state.collection.name.pt}
-                                            error={fieldError('namePT')} />
+                                    <Textarea label={intl.formatMessage({id: 'description'}) + ' (UA)'}
+                                              rows="5"
+                                              onChange={this.handleIntlFieldChange.bind(null, 'description', 'uk')}
+                                              value={this.state.collection.description ? this.state.collection.description.uk : ''}
+                                              error={fieldError('description.uk')} />
                             </div>
                             <div className="admin-collection-edit__form-item">
-                                    <Textarea label={intlStore.getMessage(intlData, 'description') + ' (EN)'}
+                                    <Textarea label={intl.formatMessage({id: 'description'}) + ' (RU)'}
+                                              rows="5"
+                                              onChange={this.handleIntlFieldChange.bind(null, 'description', 'ru')}
+                                              value={this.state.collection.description ? this.state.collection.description.ru : ''}
+                                              error={fieldError('description.ru')} />
+                            </div>
+                            <div className="admin-collection-edit__form-item">
+                                    <Textarea label={intl.formatMessage({id: 'description'}) + ' (EN)'}
                                               rows="5"
                                               onChange={this.handleIntlFieldChange.bind(null, 'description', 'en')}
-                                              value={this.state.collection.description ? this.state.collection.description.en : null}
+                                              value={this.state.collection.description ? this.state.collection.description.en : ''}
                                               error={fieldError('description.en')} />
                             </div>
                             <div className="admin-collection-edit__form-item">
-                                    <Textarea label={intlStore.getMessage(intlData, 'description') + ' (PT)'}
-                                              rows="5"
-                                              onChange={this.handleIntlFieldChange.bind(null, 'description', 'pt')}
-                                              value={this.state.collection.description ? this.state.collection.description.pt : null}
-                                              error={fieldError('description.pt')} />
-                            </div>
-                            <div className="admin-collection-edit__form-item">
                                 <ImageLibraryManager images={this.state.collection.images}
+                                                     resource="collections"
                                                      onChange={this.handleImageLibraryChange} />
                             </div>
                         </div>
@@ -310,9 +317,7 @@ class AdminCollectionsEdit extends React.Component {
                                       selected={this.state.collection.parentId}
                                       self={this.state.collection.id}
                                       onClick={this.handleParentCollectionChange}>
-                                <FormattedMessage
-                                    message={intlStore.getMessage(intlData, 'parent')}
-                                    locales={intlStore.getCurrentLocale()} />
+                                <FormattedMessage id="parentCollection" />
                             </TreeMenu>
                         </div>
                     </div>

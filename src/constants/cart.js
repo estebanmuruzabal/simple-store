@@ -1,6 +1,6 @@
-import keyMirror from 'react/lib/keyMirror';
+import keymirror from 'keymirror';
 
-export default keyMirror({
+export default keymirror({
 
     CART_FETCH: null,
     CART_FETCH_SUCCESS: null,

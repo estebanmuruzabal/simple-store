@@ -3,8 +3,9 @@
  */
 import React from 'react';
 import connectToStores from 'fluxible-addons-react/connectToStores';
-import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import {Link} from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 import config from '../../../config';
 
@@ -44,15 +45,16 @@ import intlData from './Checkout.intl';
 class Checkout extends React.Component {
 
     static contextTypes = {
-        executeAction: React.PropTypes.func.isRequired,
-        getStore: React.PropTypes.func.isRequired
+        executeAction: PropTypes.func.isRequired,
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Page Title and Snippets ***//
 
     static pageTitleAndSnippets = function (context) {
         return {
-            title: `${context.getStore(IntlStore).getMessage(intlData, 'title')} - ${config.app.title}`
+            title: `${context.getStore(IntlStore).getMessage(intlData, 'title')} - ${config.app.title[context.getStore(IntlStore).getCurrentLocale()]}`
         }
     };
 
@@ -116,6 +118,7 @@ class Checkout extends React.Component {
                 billingAddress: this.state.user.addresses[0]
             };
         }
+
         this.context.executeAction(createCheckout, payload);
     }
 
@@ -126,8 +129,8 @@ class Checkout extends React.Component {
         //
 
         // When checkout is first created
-        if (!this.state.checkout && nextProps._checkout) {
-            if (Checkout.hasShippingAndBillingAddresses(nextProps._checkout)) {
+        if (!this.state.user && nextProps._user) {
+            if (Checkout.hasShippingDetails(nextProps._user)) {
                 this.setState({editingShippingAddress: false});
             }
         }
@@ -212,6 +215,18 @@ class Checkout extends React.Component {
     // Shipping
     //
 
+    handleShippingDetailsSubmit = (shippingDetails) => {
+        let payload = {
+            checkoutId: this.state.checkout.id,
+            cartAccessToken: this.state.cart.accessToken,
+            data: {
+                shippingDetails: shippingDetails,
+            }
+        };
+        this.context.executeAction(updateCheckout, payload);
+        this.setState({shippingAddressUpdateRequested: true});
+    };
+
     handleShippingAddressSubmit = (address) => {
         let payload = {
             checkoutId: this.state.checkout.id,
@@ -226,6 +241,7 @@ class Checkout extends React.Component {
     };
 
     handleShippingAddressEditClick = () => {
+        console.log('edit click');
         this.setState({editingShippingAddress: true});
     };
 
@@ -334,20 +350,16 @@ class Checkout extends React.Component {
         //
         // Helper methods & variables
         //
-
-        let intlStore = this.context.getStore(IntlStore);
-        let routeParams = {locale: this.context.getStore(IntlStore).getCurrentLocale()}; // Base route params
+        let locale = this.context.intl.locale;
 
         let orderModal = () => {
             if (this.state.orderLoading) {
                 return (
-                    <Modal title={intlStore.getMessage(intlData, 'orderModalTitle')}>
+                    <Modal title={this.context.intl.formatMessage({id: 'orderModalTitle'})}>
                         <div className="checkout__order-loading">
                             <div className="checkout__order-loading-item">
                                 <Text size="small">
-                                    <FormattedMessage
-                                        message={intlStore.getMessage(intlData, 'creatingOrder')}
-                                        locales={intlStore.getCurrentLocale()} />...
+                                    <FormattedMessage id="creatingOrder" />...
                                 </Text>
                             </div>
                             <div className="checkout__order-loading-item">
@@ -358,13 +370,11 @@ class Checkout extends React.Component {
                 );
             } else if (this.state.showOrderCreatedModal) {
                 return (
-                    <Modal title={intlStore.getMessage(intlData, 'orderModalTitle')}>
+                    <Modal title={this.context.intl.formatMessage({id: 'orderModalTitle'})}>
                         <div className="checkout__order-created">
                             <div className="checkout__order-created-item">
                                 <Text size="medium">
-                                    <FormattedMessage
-                                        message={intlStore.getMessage(intlData, 'orderCreatedSuccessfully')}
-                                        locales={intlStore.getCurrentLocale()} />
+                                    <FormattedMessage id="orderCreatedSuccessfully" />
                                 </Text>
                             </div>
                             <div className="checkout__order-created-item">
@@ -375,21 +385,17 @@ class Checkout extends React.Component {
                             <div className="checkout__order-created-item">
                                 <InlineItems>
                                     {this.state.user ?
-                                        <Link to="account" params={routeParams} className="checkout__order-created-link">
+                                        <Link to={`/${locale}/account`} className="checkout__order-created-link">
                                             <Button onClick={this.requestNewCart}>
-                                                <FormattedMessage
-                                                    message={intlStore.getMessage(intlData, 'myAccount')}
-                                                    locales={intlStore.getCurrentLocale()} />
+                                                <FormattedMessage id="myAccount" />
                                             </Button>
                                         </Link>
                                         :
                                         null
                                     }
-                                    <Link to="homepage" params={routeParams} className="checkout__order-created-link">
+                                    <Link to={`/${locale}`} className="checkout__order-created-link">
                                         <Button type="primary" onClick={this.requestNewCart}>
-                                            <FormattedMessage
-                                                message={intlStore.getMessage(intlData, 'continueShopping')}
-                                                locales={intlStore.getCurrentLocale()} />
+                                            <FormattedMessage id="continueShopping" />
                                         </Button>
                                     </Link>
                                 </InlineItems>
@@ -399,20 +405,16 @@ class Checkout extends React.Component {
                 );
             } else if (this.state.showOrderErrorModal) {
                 return (
-                    <Modal title={intlStore.getMessage(intlData, 'orderModalTitle')} onCloseClick={this.handleOrderErrorModalCloseClick}>
+                    <Modal title={this.context.intl.formatMessage({id: 'orderModalTitle'})} onCloseClick={this.handleOrderErrorModalCloseClick}>
                         <div className="checkout__order-error">
                             <div className="checkout__order-error-item">
                                 <Text size="medium">
-                                    <FormattedMessage
-                                        message={intlStore.getMessage(intlData, 'orderError')}
-                                        locales={intlStore.getCurrentLocale()} />
+                                    <FormattedMessage id="orderError" />
                                 </Text>
                             </div>
                             <div className="checkout__order-error-item">
                                 <Button onClick={this.handleOrderErrorModalCloseClick}>
-                                    <FormattedMessage
-                                        message={intlStore.getMessage(intlData, 'tryAgain')}
-                                        locales={intlStore.getCurrentLocale()} />
+                                    <FormattedMessage id="tryAgain" />
                                 </Button>
                             </div>
                         </div>
@@ -429,9 +431,7 @@ class Checkout extends React.Component {
                 {orderModal()}
                 <div className="checkout__title">
                     <Heading size="large">
-                        <FormattedMessage
-                            message={intlStore.getMessage(intlData, 'title')}
-                            locales={intlStore.getCurrentLocale()} />
+                        <FormattedMessage id="checkoutHeader" />
                     </Heading>
                 </div>
                 {!this.state.checkout ?
@@ -443,7 +443,7 @@ class Checkout extends React.Component {
                     :
                     <div className="checkout__content">
                         <div className="checkout__left-column">
-                            <CheckoutSection className="checkout__section" number="1" title={intlStore.getMessage(intlData, 'customerDetails')}>
+                            <CheckoutSection className="checkout__section" number="1" title={this.context.intl.formatMessage({id: 'customerDetails'})}>
                                 <CheckoutCustomerDetails user={this.state.user}
                                                          editing={this.state.editingCustomerDetails}
                                                          onDetailsSubmit={this.handleCustomerDetailsSubmit}
@@ -451,7 +451,7 @@ class Checkout extends React.Component {
                                                          loading={this.state.checkoutLoading}
                                                          error={this.state.checkoutError} />
                             </CheckoutSection>
-                            <CheckoutSection className="checkout__section" number="2" title={intlStore.getMessage(intlData, 'shippingInformation')}>
+                            <CheckoutSection className="checkout__section" number="2" title={this.context.intl.formatMessage({id: 'shippingInformation'})}>
                                 <CheckoutShippingInformation user={this.state.user}
                                                              address={this.state.checkout.shippingAddress}
                                                              editingAddress={this.state.editingShippingAddress}
@@ -462,7 +462,7 @@ class Checkout extends React.Component {
                                                              onShippingOptionChange={this.handleShippingOptionChange}
                                                              loading={this.state.checkoutLoading} />
                             </CheckoutSection>
-                            <CheckoutSection className="checkout__section" number="3" title={intlStore.getMessage(intlData, 'billingInformation')}>
+                            <CheckoutSection className="checkout__section" number="3" title={this.context.intl.formatMessage({id: 'billingInformation'})}>
                                 <CheckoutBillingInformation user={this.state.user}
                                                             address={this.state.checkout.billingAddress}
                                                             useShippingAddress={this.state.useShippingAddressForBilling}
@@ -478,10 +478,10 @@ class Checkout extends React.Component {
                             </CheckoutSection>
                         </div>
                         <div className="checkout__right-column">
-                            <CheckoutSection className="checkout__section" number="✓" title={intlStore.getMessage(intlData, 'orderSummary')}>
+                            <CheckoutSection className="checkout__section" number="✓" title={this.context.intl.formatMessage({id: 'orderSummary'})}>
                                 <CheckoutSummary checkout={this.state.checkout}
                                                  useShippingAddressForBilling={this.state.useShippingAddressForBilling}
-                                                 readyForCheckout={this.state.checkout.ready && this.state.paymentInstrument.ready}
+                                                 readyForCheckout={this.state.checkout.ready}
                                                  onCheckoutClick={this.handleCheckoutClick}/>
                             </CheckoutSection>
                         </div>

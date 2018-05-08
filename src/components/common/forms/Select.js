@@ -2,6 +2,7 @@
  * Imports
  */
 import React from 'react';
+import PropTypes from 'prop-types';
 
 // Flux
 import ApplicationStore from '../../../stores/Application/ApplicationStore';
@@ -11,7 +12,7 @@ import FormLabel from '../forms/FormLabel';
 import Text from '../typography/Text';
 
 // Instantiate logger
-let debug = require('debug')('nicistore');
+let debug = require('debug')('simple-store');
 
 /**
  * Component
@@ -19,7 +20,7 @@ let debug = require('debug')('nicistore');
 class Select extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired
     };
 
     //*** Initial State ***//
@@ -31,7 +32,6 @@ class Select extends React.Component {
     //*** Componet Lifecycle ***//
 
     componentDidMount() {
-
         // Component styles
         require('./Select.scss');
     }
@@ -52,6 +52,7 @@ class Select extends React.Component {
         // Helper methods and variables
         //
         let id = `select-${this.context.getStore(ApplicationStore).uniqueId()}`;
+        // let id = 23;
         let options = this.props.options || [];
 
         let componentClass = 'select';
@@ -85,7 +86,7 @@ class Select extends React.Component {
                     :
                     null
                 }
-                <select key={id}
+                <select
                         id={id}
                         className={selectClass}
                         value={this.state.value}

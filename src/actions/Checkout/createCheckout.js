@@ -2,7 +2,7 @@ import checkoutActions from '../../constants/checkout';
 import config from '../../config';
 
 // Initialize debugging utility
-let debug = require('debug')('nicistore');
+let debug = require('debug')('simple-store');
 
 export default function createCheckout(context, payload, done) {
     context.dispatch(checkoutActions.CHECKOUT_CREATE);
@@ -30,7 +30,7 @@ export default function createCheckout(context, payload, done) {
                 let options = paymentMethods.collection;
                 for (let i=0, len=options.length; i<len; i++) { // Process response to have expected data
                     options[i].provider = 'switch';
-                    options[i].label = {en: options[i].label, pt: options[i].label};
+                    options[i].label = {uk: options[i].label, ru: options[i].label, en: options[i].label};
                 }
                 dispatchEvents(options);
             }, function errorFn(err) {

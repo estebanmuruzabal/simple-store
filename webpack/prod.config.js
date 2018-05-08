@@ -4,8 +4,10 @@
 var path = require('path');
 var webpack = require('webpack');
 var StatsWriterPlugin = require('webpack-stats-plugin').StatsWriterPlugin;
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var strip = require('strip-loader');
+var autoprefixer = require('autoprefixer');
+var MiniCssExtractPlugin = require("mini-css-extract-plugin");
+var CompressionPlugin = require("compression-webpack-plugin")
 
 /**
  * Settings
@@ -16,6 +18,7 @@ var dist = path.resolve(__dirname, '../static/dist');
  * Production Settings
  */
 var config = {
+    mode: 'production',
     devtool: 'source-map',
     entry: './src/client.js',
     output: {
@@ -25,19 +28,75 @@ var config = {
         publicPath: '/static/dist/'
     },
     module: {
-        loaders: [
-            {test: /\.(jpe?g|png|gif|svg)$/, loader: 'file'},
-            {test: /\.js$/, exclude: /node_modules/, loaders: [strip.loader('debug'), 'babel?stage=0&optional=runtime']},
-            {test: /\.scss$/, loader: ExtractTextPlugin.extract('style', 'css!autoprefixer?browsers=last 2 version!sass')},
-            {test: /\.woff(2)?$/, loader: 'url?limit=10000&minetype=application/font-woff'},
-            {test: /\.(ttf|eot)$/, loader: 'file'}
+        rules: [
+            {
+                test: /\.(jpe?g|png|gif|svg)$/,
+                exclude: /node_modules/,
+                use: 'file-loader'
+            },
+            {
+                test: /\.js$/,
+                exclude: /node_modules/,
+                use: [{
+                    loader: strip.loader('debug')
+                }, {
+                    loader: 'babel-loader',
+                }],
+            },
+            {
+                test: /\.scss$/,
+                exclude: /node_modules/,
+                use: [
+                    MiniCssExtractPlugin.loader,
+                    {
+                        loader: 'css-loader',
+                        options: {
+                            minimize: true,
+                        },
+                    }, {
+                        loader: 'postcss-loader',
+                        options: {
+                            ident: 'postcss',
+                            plugins: (loader) => [
+                                 autoprefixer("last 3 version"),
+                            ],
+                        }
+                    }, {
+                        loader: 'sass-loader'
+                    }
+                ]
+            },
+            {
+                test: /\.woff(2)?$/,
+                exclude: /node_modules/,
+                use: [{
+                    loader: 'url-loader',
+                    options: {
+                        limit: 10000,
+                        minetype: 'application/font-woff',
+                    }
+                }]
+            },
+            {
+                test: /\.(ttf|eot)$/,
+                exclude: /node_modules/,
+                use: 'file-loader'
+            }
         ]
     },
-    progress: true,
     plugins: [
 
         // css files from the extract-text-plugin loader
-        new ExtractTextPlugin('[name]-[chunkhash].css'),
+        new MiniCssExtractPlugin({
+            filename: '[name]-[chunkhash].css'
+        }),
+
+        new CompressionPlugin({
+            test: /\.(js|css|png|jp?eg)/,
+            exclude: /node_modules/,
+            asset: '[path].gz[query]',
+            cache: true,
+        }),
 
         // ignore dev config
         new webpack.IgnorePlugin(/\.\/dev/, /\/config$/),
@@ -56,24 +115,15 @@ var config = {
             }
         }),
 
-        // optimizations
-        new webpack.optimize.DedupePlugin(),
-        new webpack.optimize.OccurenceOrderPlugin(),
-        new webpack.optimize.UglifyJsPlugin({
-            compress: {
-                warnings: false
-            }
-        }),
-
         // Write out stats.json file to build directory.
         new StatsWriterPlugin({
             transform: function (data) {
                 return JSON.stringify({
-                    main: data.assetsByChunkName.main[0],
-                    css: data.assetsByChunkName.main[1]
+                    css: data.assetsByChunkName.main[0],
+                    main: data.assetsByChunkName.main[1],
                 });
             }
-        })
+        }),
     ]
 };
 

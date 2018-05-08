@@ -2,21 +2,16 @@
  * Imports
  */
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
-
-// Flux
-import IntlStore from '../../../../stores/Application/IntlStore';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import PropTypes from 'prop-types';
 
 // Required components
 import Button from '../../../common/buttons/Button';
 import InputField from '../../../common/forms/InputField';
 import Select from '../../../common/forms/Select';
 
-// Translation data for this component
-import intlData from './AdminOrdersSendEmail.intl';
-
 // Instantiate logger
-let debug = require('debug')('nicistore');
+let debug = require('debug')('simple-store');
 
 /**
  * Component
@@ -24,7 +19,8 @@ let debug = require('debug')('nicistore');
 class AdminOrdersSendEmail extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Initial State ***//
@@ -71,19 +67,20 @@ class AdminOrdersSendEmail extends React.Component {
         this.setState({subject: value});
     };
 
+
     handleSubmitClick = () => {
-        let intlStore = this.context.getStore(IntlStore);
+        let intl = this.context.intl;
 
         this.setState({fieldErrors: {}});
         let fieldErrors = {};
         if (!this.state.template) {
-            fieldErrors.template = intlStore.getMessage(intlData, 'fieldRequired');
+            fieldErrors.template = intl.formatMessage({id: 'fieldRequired'});
         }
         if (!this.state.email) {
-            fieldErrors.email = intlStore.getMessage(intlData, 'fieldRequired');
+            fieldErrors.email = intl.formatMessage({id: 'fieldRequired'});
         }
         if (!this.state.subject) {
-            fieldErrors.subject = intlStore.getMessage(intlData, 'fieldRequired');
+            fieldErrors.subject = intl.formatMessage({id: 'fieldRequired'});
         }
         this.setState({fieldErrors: fieldErrors});
 
@@ -104,17 +101,17 @@ class AdminOrdersSendEmail extends React.Component {
         // Helper methods & variables
         //
 
-        let intlStore = this.context.getStore(IntlStore);
+        let intl = this.context.intl;
 
         // Build list of available email templates for given order
         let emailTemplateOptions = [
-            {name: intlStore.getMessage(intlData, 'orderCreated'), value: 'order.created'}
+            {name: intl.formatMessage({id: 'orderCreated'}), value: 'order.created'}
         ];
         if (this.props.order.status === 'paid') {
-            emailTemplateOptions.push({name: intlStore.getMessage(intlData, 'orderPaid'), value: 'order.paid'});
+            emailTemplateOptions.push({name: intl.formatMessage({id: 'orderPaid'}), value: 'order.paid'});
         }
         if (this.props.order.status === 'pendingPayment') {
-            emailTemplateOptions.push({name: intlStore.getMessage(intlData, 'orderPendingPayment'), value: 'order.pendingPayment'});
+            emailTemplateOptions.push({name: intl.formatMessage({id: 'orderPendingPayment'}), value: 'order.pendingPayment'});
         }
 
         //
@@ -123,35 +120,31 @@ class AdminOrdersSendEmail extends React.Component {
         return (
             <div className="admin-orders-send-email">
                 <div className="admin-orders-send-email__form-item">
-                    <Select label={intlStore.getMessage(intlData, 'template')}
+                    <Select label={intl.formatMessage({id: 'template'})}
                             placeholder
                             options={emailTemplateOptions}
                             onChange={this.handleTemplateChange}
                             error={this.state.fieldErrors.template} />
                 </div>
                 <div className="admin-orders-send-email__form-item">
-                    <InputField label={intlStore.getMessage(intlData, 'emailAddress')}
+                    <InputField label={intl.formatMessage({id: 'emailAddress'})}
                                 onChange={this.handleEmailAddressChange}
                                 error={this.state.fieldErrors.email}/>
                 </div>
                 <div className="admin-orders-send-email__form-item">
-                    <InputField label={intlStore.getMessage(intlData, 'subject')}
+                    <InputField label={intl.formatMessage({id: 'subject'})}
                                 onChange={this.handleSubjectChange}
                                 error={this.state.fieldErrors.subject}/>
                 </div>
                 <div className="admin-orders-send-email__actions">
                     <div className="admin-orders-send-email__button">
                         <Button type="default" onClick={this.props.onCancelClick} disabled={this.props.loading}>
-                            <FormattedMessage
-                                message={intlStore.getMessage(intlData, 'cancel')}
-                                locales={intlStore.getCurrentLocale()} />
+                            <FormattedMessage id="cancelButton" />
                         </Button>
                     </div>
                     <div className="admin-orders-send-email__button">
                         <Button type="primary" onClick={this.handleSubmitClick} disabled={this.props.loading}>
-                            <FormattedMessage
-                                message={intlStore.getMessage(intlData, 'submit')}
-                                locales={intlStore.getCurrentLocale()} />
+                            <FormattedMessage id="sendButton" />
                         </Button>
                     </div>
                 </div>

@@ -5,8 +5,6 @@ import createStore from 'fluxible/addons/createStore';
 
 import accountActions from '../../constants/account';
 
-let debug = require('debug')('nicistore');
-
 /**
  * Create Store.
  */
@@ -64,8 +62,8 @@ const LoginStore = createStore({
     },
 
     getToken: function () {
-        if (typeof localStorage != 'undefined') {
-            return localStorage.getItem('authToken');
+        if (this && this.getContext && this.getContext().getCookie) {
+            return this.getContext().getCookie('authToken');
         } else {
             return null;
         }
@@ -83,21 +81,21 @@ const LoginStore = createStore({
     handleLoginSuccess: function (payload) {
         this.loading = false;
         this.error = null;
-        localStorage.setItem('authToken', payload.authToken);
+        this.getContext().setCookie('authToken', payload.authToken, {maxAge: 5 * 24 * 60 * 60, path: '/'});
         this.emitChange();
     },
 
     handleLoginError: function (payload) {
         this.loading = false;
         this.error = payload;
-        localStorage.removeItem('authToken');
+        this.getContext().clearCookie('authToken');
         this.emitChange();
     },
 
     handleLogoutSuccess: function () {
         this.loading = false;
         this.error = null;
-        localStorage.removeItem('authToken');
+        this.getContext().clearCookie('authToken');
         this.emitChange();
     }
 });

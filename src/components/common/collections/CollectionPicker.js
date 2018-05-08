@@ -2,17 +2,15 @@
  * Imports
  */
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
-
-// Flux
-import IntlStore from '../../../stores/Application/IntlStore';
+import { injectIntl, intlShape } from 'react-intl';
+import PropTypes from 'prop-types';
 
 // Required components
 import Checkbox from '../forms/Checkbox';
 import FormLabel from '../forms/FormLabel';
 
 // Instantiate logger
-let debug = require('debug')('nicistore');
+let debug = require('debug')('simple-store');
 
 /**
  * Component
@@ -20,13 +18,14 @@ let debug = require('debug')('nicistore');
 class CollectionPicker extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
-    
+
     //*** Component Lifecycle ***//
-    
+
     componentDidMount() {
-        
+
         // Component styles
         require('./CollectionPicker.scss');
     }
@@ -50,7 +49,7 @@ class CollectionPicker extends React.Component {
     //*** Template ***//
 
     render() {
-        let intlStore = this.context.getStore(IntlStore);
+        let locale = this.context.intl.locale;
         return (
             <div className="collection-picker">
                 {this.props.children ?
@@ -59,8 +58,7 @@ class CollectionPicker extends React.Component {
                     null
                 }
                 {this.props.collections.map((collection, idx) => {
-                    let name = <FormattedMessage message={intlStore.getMessage(collection.name)}
-                                                 locales={intlStore.getCurrentLocale()} />;
+                    let name = collection.name[locale];
                     let checkboxClass = 'collection-picker__checkbox';
                     if (collection.enabled !== true) {
                         checkboxClass += ' collection-picker__checkbox--disabled';

@@ -3,11 +3,11 @@
  */
 import React from 'react';
 import connectToStores from 'fluxible-addons-react/connectToStores';
-import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import {Link} from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 // Flux
-import IntlStore from '../../../../stores/Application/IntlStore';
 import ProductsAddStore from '../../../../stores/Products/ProductsAddStore';
 import ProductsListStore from '../../../../stores/Products/ProductsListStore';
 
@@ -28,18 +28,15 @@ import Text from '../../../common/typography/Text';
 import AdminProductsAddForm from './AdminProductsAddForm';
 import AdminProductsUpload from './AdminProductsUpload';
 
-// Translation data for this component
-import intlData from './AdminProducts.intl';
-
 /**
  * Component
  */
 class AdminProducts extends React.Component {
 
     static contextTypes = {
-        executeAction: React.PropTypes.func.isRequired,
-        getStore: React.PropTypes.func.isRequired,
-        router: React.PropTypes.func.isRequired
+        executeAction: PropTypes.func.isRequired,
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Initial State ***//
@@ -60,7 +57,7 @@ class AdminProducts extends React.Component {
         require('./AdminProducts.scss');
 
         // Load required data
-        this.context.executeAction(fetchProducts, {perPage: 200, sort: 'sku'});
+        this.context.executeAction(fetchProducts, {perPage: 200, sort: '-date'});
     }
 
     componentWillReceiveProps(nextProps) {
@@ -69,11 +66,7 @@ class AdminProducts extends React.Component {
         // product edit page
         if (this.state.addProduct.loading === true
             && nextProps._addProduct.loading === false && !nextProps._addProduct.error) {
-            let params = {
-                locale: this.context.getStore(IntlStore).getCurrentLocale(),
-                productId: nextProps._addProduct.product.id
-            };
-            this.context.router.transitionTo('adm-product-edit', params);
+            this.props.history.push(`/${this.context.intl.locale}/adm/products/${nextProps._addProduct.product.id}`);
         }
 
         this.setState({
@@ -94,9 +87,9 @@ class AdminProducts extends React.Component {
     handleUploadCloseClick = () => {
         this.setState({showUploadModal: false});
     };
-    
+
     handleUploadSubmitClick = (data) => {
-        this.context.executeAction(productsUpload, data); 
+        this.context.executeAction(productsUpload, data);
     };
 
     // New Product Modal
@@ -121,13 +114,13 @@ class AdminProducts extends React.Component {
         // Helper methods & variables
         //
 
-        let intlStore = this.context.getStore(IntlStore);
-        let routeParams = {locale: this.context.getStore(IntlStore).getCurrentLocale()}; // Base route params
+        let intl = this.context.intl;
+        let locale = intl.locale;
 
         let uploadModal = () => {
             if (this.state.showUploadModal) {
                 return (
-                    <Modal title={intlStore.getMessage(intlData, 'uploadModalTitle')}
+                    <Modal title={intl.formatMessage({id: 'uploadProductsModalTitle'})}
                            onCloseClick={this.handleUploadCloseClick}>
                         <AdminProductsUpload onCancelClick={this.handleUploadCloseClick}
                                              onSubmitClick={this.handleUploadSubmitClick} />
@@ -139,7 +132,7 @@ class AdminProducts extends React.Component {
         let newProductModal = () => {
             if (this.state.showNewProductModal) {
                 return (
-                    <Modal title={intlStore.getMessage(intlData, 'newModalTitle')}
+                    <Modal title={intl.formatMessage({id: 'newProductModalTitle'})}
                            onCloseClick={this.handleNewProductCloseClick}>
                        <AdminProductsAddForm
                            loading={this.state.addProduct.loading}
@@ -158,9 +151,7 @@ class AdminProducts extends React.Component {
                         return (
                             <div key={idx} className="admin-products__label">
                                 <Label>
-                                    <FormattedMessage
-                                        message={intlStore.getMessage(intlData, section)}
-                                        locales={intlStore.getCurrentLocale()} />
+                                    <FormattedMessage id={section} />
                                 </Label>
                             </div>
                         );
@@ -170,24 +161,12 @@ class AdminProducts extends React.Component {
         };
 
         let headings = [
-            <FormattedMessage
-                message={intlStore.getMessage(intlData, 'skuHeading')}
-                locales={intlStore.getCurrentLocale()} />,
-            <FormattedMessage
-                message={intlStore.getMessage(intlData, 'nameHeading')}
-                locales={intlStore.getCurrentLocale()} />,
-            <FormattedMessage
-                message={intlStore.getMessage(intlData, 'stockHeading')}
-                locales={intlStore.getCurrentLocale()} />,
-            <FormattedMessage
-                message={intlStore.getMessage(intlData, 'imagesHeading')}
-                locales={intlStore.getCurrentLocale()} />,
-            <FormattedMessage
-                message={intlStore.getMessage(intlData, 'sectionsHeading')}
-                locales={intlStore.getCurrentLocale()} />,
-            <FormattedMessage
-                message={intlStore.getMessage(intlData, 'enabledHeading')}
-                locales={intlStore.getCurrentLocale()} />
+            <FormattedMessage id="skuHeading" />,
+            <FormattedMessage id="nameHeading"/>,
+            <FormattedMessage id="stockHeading" />,
+            <FormattedMessage id="imagesHeading" />,
+            <FormattedMessage id="sectionsHeading" />,
+            <FormattedMessage id="enabledHeading" />
         ];
 
         let rows = this.state.products.map(function (product) {
@@ -196,10 +175,8 @@ class AdminProducts extends React.Component {
                 data: [
                     <Text size="medium">{product.sku}</Text>,
                     <span className="admin-products__link">
-                        <Link to="adm-product-edit" params={Object.assign({productId: product.id}, routeParams)}>
-                            <FormattedMessage
-                                message={intlStore.getMessage(product.name)}
-                                locales={intlStore.getCurrentLocale()} />
+                        <Link to={`/${locale}/adm/products/${product.id}`} >
+                            {product.name[locale]}
                         </Link>
                     </span>,
                     <StatusIndicator status={(product.stock > 0) ? 'default' : 'error'} />,
@@ -221,24 +198,18 @@ class AdminProducts extends React.Component {
                 <div className="admin-products__header">
                     <div className="admin-products__title">
                         <Heading size="medium">
-                            <FormattedMessage
-                                message={intlStore.getMessage(intlData, 'title')}
-                                locales={intlStore.getCurrentLocale()} />
+                            <FormattedMessage id="adminProductsHeader" />
                         </Heading>
                     </div>
                     <div className="admin-products__toolbar">
                         <div className="admin-products__toolbar-button">
                             <Button type="default" onClick={this.handleUploadClick}>
-                                <FormattedMessage
-                                    message={intlStore.getMessage(intlData, 'upload')}
-                                    locales={intlStore.getCurrentLocale()} />
+                                <FormattedMessage id="uploadButton" />
                             </Button>
                         </div>
                         <div className="admin-products__toolbar-button">
                             <Button type="primary" onClick={this.handleNewProductClick}>
-                                <FormattedMessage
-                                    message={intlStore.getMessage(intlData, 'new')}
-                                    locales={intlStore.getCurrentLocale()} />
+                                <FormattedMessage id="newButton" />
                             </Button>
                         </div>
                     </div>
@@ -261,8 +232,7 @@ class AdminProducts extends React.Component {
                 {!this.state.loading && this.state.products.length === 0 ?
                     <div className="admin-products__no-results">
                         <Text size="small">
-                            <FormattedMessage message={intlStore.getMessage(intlData, 'noResults')}
-                                              locales={intlStore.getCurrentLocale()} />
+                            <FormattedMessage id="noResults" />
                         </Text>
                     </div>
                     :

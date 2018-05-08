@@ -2,6 +2,7 @@
  * Imports
  */
 import React from 'react';
+import PropTypes from 'prop-types';
 
 // Flux
 import ApplicationStore from '../../../stores/Application/ApplicationStore';
@@ -11,7 +12,7 @@ import FormLabel from './FormLabel';
 import Text from '../typography/Text';
 
 // Instantiate logger
-let debug = require('debug')('nicistore');
+let debug = require('debug')('simple-store');
 
 /**
  * Component
@@ -19,7 +20,7 @@ let debug = require('debug')('nicistore');
 class Textarea extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired
     };
 
     //*** Component Lifecycle ***//
@@ -51,7 +52,9 @@ class Textarea extends React.Component {
             <div className="textarea">
                 {this.props.label ?
                     <div className="textarea__label">
-                        <FormLabel for={id}>{this.props.label}</FormLabel>
+                        <FormLabel for={id} size={this.props.labelSize} weight={this.props.labelWeight}>
+                            {this.props.label}
+                        </FormLabel>
                     </div>
                     :
                     null

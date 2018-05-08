@@ -3,13 +3,13 @@
  */
 import React from 'react';
 import connectToStores from 'fluxible-addons-react/connectToStores';
-import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import {Link} from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 // Flux
 import ContentsAddStore from '../../../../stores/Contents/ContentsAddStore';
 import ContentsListStore from '../../../../stores/Contents/ContentsListStore';
-import IntlStore from '../../../../stores/Application/IntlStore';
 
 import addContent from '../../../../actions/Admin/addContent';
 import fetchContents from '../../../../actions/Contents/fetchContents';
@@ -26,18 +26,15 @@ import Text from '../../../common/typography/Text';
 
 import AdminContentsAddForm from './AdminContentsAddForm';
 
-// Translation data for this component
-import intlData from './AdminContents.intl';
-
 /**
  * Component
  */
 class AdminContents extends React.Component {
 
     static contextTypes = {
-        executeAction: React.PropTypes.func.isRequired,
-        getStore: React.PropTypes.func.isRequired,
-        router: React.PropTypes.func.isRequired
+        executeAction: PropTypes.func.isRequired,
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Initial State ***//
@@ -66,11 +63,8 @@ class AdminContents extends React.Component {
         // content edit page
         if (this.state.addContent.loading === true
             && nextProps._addContent.loading === false && !nextProps._addContent.error) {
-            let params = {
-                locale: this.context.getStore(IntlStore).getCurrentLocale(),
-                contentId: nextProps._addContent.content.id
-            };
-            this.context.router.transitionTo('adm-content-edit', params);
+            this.props.history.push(`/${this.context.intl.locale}/adm/contents/${nextProps._addContent.content.id}`);
+
         }
 
         // Update state
@@ -102,13 +96,12 @@ class AdminContents extends React.Component {
         //
         // Helper methods & variables
         //
-        let intlStore = this.context.getStore(IntlStore);
-        let routeParams = {locale: this.context.getStore(IntlStore).getCurrentLocale()}; // Base route params
+        let locale = this.context.intl.locale;
 
         let newContentModal = () => {
             if (this.state.showNewContentModal) {
                 return (
-                    <Modal title={intlStore.getMessage(intlData, 'newModalTitle')}
+                    <Modal title={this.context.intl.formatMessage({id: 'newContentModalTitle'})}
                            onCloseClick={this.handleNewContentCloseClick}>
                         <AdminContentsAddForm
                             loading={this.state.addContent.loading}
@@ -120,14 +113,10 @@ class AdminContents extends React.Component {
         };
 
         let headings = [
-            <FormattedMessage message={intlStore.getMessage(intlData, 'typeHeading')}
-                              locales={intlStore.getCurrentLocale()} />,
-            <FormattedMessage message={intlStore.getMessage(intlData, 'nameHeading')}
-                              locales={intlStore.getCurrentLocale()} />,
-            <FormattedMessage message={intlStore.getMessage(intlData, 'tagsHeading')}
-                              locales={intlStore.getCurrentLocale()} />,
-            <FormattedMessage message={intlStore.getMessage(intlData, 'enabledHeading')}
-                              locales={intlStore.getCurrentLocale()} />
+            <FormattedMessage id="typeHeading" />,
+            <FormattedMessage id="nameHeading" />,
+            <FormattedMessage id="tagsHeading" />,
+            <FormattedMessage id="enabledHeading"/>
         ];
 
         let rows = this.state.contents.map(function (content) {
@@ -136,20 +125,17 @@ class AdminContents extends React.Component {
                     <Text size="medium">
                         {content.type ?
                             <Label>
-                                <FormattedMessage message={intlStore.getMessage(intlData, content.type)}
-                                                  locales={intlStore.getCurrentLocale()} />
+                                <FormattedMessage id={content.type} />
                             </Label>
                             :
                             <Label type="error">
-                                <FormattedMessage message={intlStore.getMessage(intlData, 'noType')}
-                                                  locales={intlStore.getCurrentLocale()} />
+                                <FormattedMessage id="noType" />
                             </Label>
                         }
                     </Text>,
                     <span className="admin-contents__link">
-                        <Link to="adm-content-edit" params={Object.assign({contentId: content.id}, routeParams)}>
-                            <FormattedMessage message={intlStore.getMessage(content.name)}
-                                              locales={intlStore.getCurrentLocale()} />
+                        <Link to={`/${locale}/adm/contents/${content.id}`} >
+                            {content.name[locale]}
                         </Link>
                     </span>,
                     <div className="admin-contents__labels">
@@ -157,8 +143,7 @@ class AdminContents extends React.Component {
                             return (
                                 <div key={idx} className="admin-contents__tag">
                                     <Label>
-                                        <FormattedMessage message={intlStore.getMessage(intlData, tag)}
-                                                          locales={intlStore.getCurrentLocale()} />
+                                        <FormattedMessage id={tag} />
                                     </Label>
                                 </div>
                             );
@@ -179,17 +164,13 @@ class AdminContents extends React.Component {
                 <div className="admin-contents__header">
                     <div className="admin-contents__title">
                         <Heading size="medium">
-                            <FormattedMessage
-                                message={intlStore.getMessage(intlData, 'title')}
-                                locales={intlStore.getCurrentLocale()} />
+                            <FormattedMessage id="adminContentsHeader" />
                         </Heading>
                     </div>
                     <div className="admin-contents__toolbar">
                         <div className="admin-contents__add-button">
                             <Button type="primary" onClick={this.handleNewContentClick}>
-                                <FormattedMessage
-                                    message={intlStore.getMessage(intlData, 'new')}
-                                    locales={intlStore.getCurrentLocale()} />
+                                <FormattedMessage id="newButton" />
                             </Button>
                         </div>
                     </div>

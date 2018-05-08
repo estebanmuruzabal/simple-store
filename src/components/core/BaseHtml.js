@@ -28,7 +28,6 @@ class BaseHtml extends React.Component {
                     <div id="app" dangerouslySetInnerHTML={{__html: this.props.markup}}></div>
                     <script dangerouslySetInnerHTML={{__html: this.props.state}}></script>
                     {this.props.scripts.map((src, idx) => <script src={src} key={idx}></script>)}
-                    <script src={`${this.props.staticURL}/vendor/switch-2.latest.min.js`}></script>
                     {config.facebookPixel && config.facebookPixel.enabled === true ?
                         <script src={`${this.props.staticURL}/vendor/facebook-pixel.js`}></script>
                         :

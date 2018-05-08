@@ -2,7 +2,8 @@
  * Imports
  */
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import PropTypes from 'prop-types';
 
 // Flux
 import IntlStore from '../../../stores/Application/IntlStore';
@@ -14,16 +15,14 @@ import InlineItems from './InlineItems';
 import InputField from './InputField';
 import Select from './Select';
 
-// Translation data for this component
-import intlData from './AddressField.intl';
-
 /**
  * Component
  */
 class AddressField extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Initial State ***//
@@ -55,29 +54,29 @@ class AddressField extends React.Component {
 
     handleSubmitClick = () => {
 
-        let intlStore = this.context.getStore(IntlStore);
+        let intl = this.context.intl;
 
         // Client-side validations
         let fieldErrors = {};
 
         if (!this.state.address.name) {
-            fieldErrors.name = intlStore.getMessage(intlData, 'fieldRequired');
+            fieldErrors.name = intl.formatMessage({id: 'fieldRequired'});
         }
 
         if (!this.state.address.addressLine1) {
-            fieldErrors.addressLine1 = intlStore.getMessage(intlData, 'fieldRequired');
+            fieldErrors.addressLine1 = intl.formatMessage({id: 'fieldRequired'});
         }
 
         if (!this.state.address.postalCode) {
-            fieldErrors.postalCode = intlStore.getMessage(intlData, 'fieldRequired');
+            fieldErrors.postalCode = intl.formatMessage({id: 'fieldRequired'});
         }
 
         if (!this.state.address.city) {
-            fieldErrors.city = intlStore.getMessage(intlData, 'fieldRequired');
+            fieldErrors.city = intl.formatMessage({id: 'fieldRequired'});
         }
 
         if (!this.state.address.country) {
-            fieldErrors.country = intlStore.getMessage(intlData, 'fieldRequired');
+            fieldErrors.country = intl.formatMessage({id: 'fieldRequired'});
         }
 
         this.setState({fieldErrors: fieldErrors});
@@ -92,10 +91,10 @@ class AddressField extends React.Component {
 
     render() {
 
-        let intlStore = this.context.getStore(IntlStore);
+        let intl = this.context.intl;
 
         let countryOptions = [
-            {name: 'Portugal', value: 'PT'}
+            {name: 'Ukraine', value: 'UA'}
         ];
 
         let addressOptions;
@@ -112,7 +111,7 @@ class AddressField extends React.Component {
             <div className="address-field">
                 {addressOptions ?
                     <div className="address-field__item address-field__saved-addresses">
-                        <Select label={intlStore.getMessage(intlData, 'savedAddresses')}
+                        <Select label={intl.formatMessage({id: 'savedAddresses'})}
                                 labelWeight="normal"
                                 labelSize="small"
                                 placeholder
@@ -124,64 +123,64 @@ class AddressField extends React.Component {
                 }
                 <div className="address-field__item">
                     <InlineItems>
-                        <InputField label={intlStore.getMessage(intlData, 'name')}
+                        <InputField label={intl.formatMessage({id: 'fullName'})}
                                     labelWeight={this.props.labelWeight}
-                                    value={this.state.address.name}
+                                    value={this.state.address.name || ''}
                                     onChange={this.handleFieldChange.bind(null, 'name')}
                                     error={this.state.fieldErrors['name']} />
-                        <InputField label={intlStore.getMessage(intlData, 'phoneNumber')}
+                        <InputField label={intl.formatMessage({id: 'phoneNumber'})}
                                     labelWeight={this.props.labelWeight}
-                                    value={this.state.address.phone}
+                                    value={this.state.address.phone || ''}
                                     onChange={this.handleFieldChange.bind(null, 'phone')}
                                     error={this.state.fieldErrors['phone']} />
                     </InlineItems>
                 </div>
                 <div className="address-field__item">
-                    <InputField label={intlStore.getMessage(intlData, 'vatin')}
+                    <InputField label={intl.formatMessage({id: 'vatin'})}
                                 labelWeight={this.props.labelWeight}
-                                value={this.state.address.vatin}
+                                value={this.state.address.vatin || ''}
                                 onChange={this.handleFieldChange.bind(null, 'vatin')}
                                 error={this.state.fieldErrors['vatin']} />
                 </div>
                 <div className="address-field__item">
-                    <InputField label={intlStore.getMessage(intlData, 'address')}
+                    <InputField label={intl.formatMessage({id: 'address'})}
                                 labelWeight={this.props.labelWeight}
-                                value={this.state.address.addressLine1}
+                                value={this.state.address.addressLine1 || ''}
                                 onChange={this.handleFieldChange.bind(null, 'addressLine1')}
                                 error={this.state.fieldErrors['addressLine1']} />
                 </div>
                 <div className="address-field__address-line2">
                     <InputField labelWeight={this.props.labelWeight}
-                                value={this.state.address.addressLine2}
+                                value={this.state.address.addressLine2 || ''}
                                 onChange={this.handleFieldChange.bind(null, 'addressLine2')}
                                 error={this.state.fieldErrors['addressLine2']} />
                 </div>
                 <div className="address-field__item">
                     <InlineItems>
-                        <InputField label={intlStore.getMessage(intlData, 'postalCode')}
+                        <InputField label={intl.formatMessage({id: 'postalCode'})}
                                     labelWeight={this.props.labelWeight}
-                                    value={this.state.address.postalCode}
+                                    value={this.state.address.postalCode || ''}
                                     onChange={this.handleFieldChange.bind(null, 'postalCode')}
                                     error={this.state.fieldErrors['postalCode']} />
-                        <InputField label={intlStore.getMessage(intlData, 'city')}
+                        <InputField label={intl.formatMessage({id: 'city'})}
                                     labelWeight={this.props.labelWeight}
-                                    value={this.state.address.city}
+                                    value={this.state.address.city || ''}
                                     onChange={this.handleFieldChange.bind(null, 'city')}
                                     error={this.state.fieldErrors['city']} />
                     </InlineItems>
                 </div>
                 <div className="address-field__item">
                     <InlineItems>
-                        <InputField label={intlStore.getMessage(intlData, 'state')}
+                        <InputField label={intl.formatMessage({id: 'state'})}
                                     labelWeight={this.props.labelWeight}
-                                    value={this.state.address.state}
+                                    value={this.state.address.state || ''}
                                     onChange={this.handleFieldChange.bind(null, 'state')}
                                     error={this.state.fieldErrors['state']} />
-                        <Select label={intlStore.getMessage(intlData, 'country')}
+                        <Select label={intl.formatMessage({id: 'country'})}
                                 placeholder
                                 options={countryOptions}
                                 labelWeight={this.props.labelWeight}
-                                value={this.state.address.country}
+                                value={this.state.address.country || ''}
                                 onChange={this.handleFieldChange.bind(null, 'country')}
                                 error={this.state.fieldErrors['country']} />
                     </InlineItems>
@@ -195,7 +194,7 @@ class AddressField extends React.Component {
                                             onClick={this.props.onCancel}
                                             disabled={this.props.disabled}
                                             loading={this.props.loading}>
-                                        {this.props.cancelLabel || intlStore.getMessage(intlData, 'cancel')}
+                                        {this.props.cancelLabel || intl.formatMessage({id: 'cancelButton'})}
                                     </Button>
                                     :
                                     null
@@ -207,7 +206,7 @@ class AddressField extends React.Component {
                                             onClick={this.handleSubmitClick}
                                             disabled={this.props.disabled}
                                             loading={this.props.loading}>
-                                        {this.props.submitLabel || intlStore.getMessage(intlData, 'submit')}
+                                        {this.props.submitLabel || intl.formatMessage({id: 'updateButton'})}
                                     </Button>
                                     :
                                     null

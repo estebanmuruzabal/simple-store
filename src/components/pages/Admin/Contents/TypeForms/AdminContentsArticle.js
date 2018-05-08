@@ -2,10 +2,8 @@
  * Imports
  */
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
-
-// Flux
-import IntlStore from '../../../../../stores/Application/IntlStore';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import PropTypes from 'prop-types';
 
 // Required components
 import FormLabel from '../../../../common/forms/FormLabel';
@@ -13,16 +11,14 @@ import InputField from '../../../../common/forms/InputField';
 import MarkdownHTML from '../../../../common/typography/MarkdownHTML';
 import MarkdownEditor from '../../../../common/forms/MarkdownEditor';
 
-// Translation data for this component
-import intlData from './AdminContentsArticle.intl';
-
 /**
  * Component
  */
 class AdminContentsArticle extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Initial State ***//
@@ -50,21 +46,19 @@ class AdminContentsArticle extends React.Component {
     //*** Template ***//
 
     render() {
-        let intlStore = this.context.getStore(IntlStore);
+        let locale = this.context.intl.locale;
         return (
             <div className="admin-contents-article">
                 <div className="admin-contents-article__summary">
                     <div className="admin-contents-article__form-item">
                         <InputField label={
                                         <div>
-                                            <FormattedMessage
-                                                message={intlStore.getMessage(intlData, 'summary')}
-                                                locales={intlStore.getCurrentLocale()} />
+                                            <FormattedMessage id="summary" />
                                             &nbsp;({this.props.selectedLocale})
                                         </div>
                                     }
                                     onChange={this.handleLocaleFieldField.bind(null, 'summary', this.props.selectedLocale)}
-                                    value={this.props.body.summary[this.props.selectedLocale]}
+                                    value={this.props.body.summary[this.props.selectedLocale] || ''}
                                     error={this.state.fieldErrors[`summary.${this.props.selectedLocale}`]} />
                     </div>
                 </div>
@@ -73,19 +67,17 @@ class AdminContentsArticle extends React.Component {
                         <MarkdownEditor key={this.props.selectedLocale}
                                         label={
                                             <div>
-                                                <FormattedMessage message={intlStore.getMessage(intlData, 'edit')}
-                                                                  locales={intlStore.getCurrentLocale()} />
+                                                <FormattedMessage id="edit" />
                                                 &nbsp;({this.props.selectedLocale})
                                             </div>
                                         }
-                                        value={this.props.body.markdown[this.props.selectedLocale]}
+                                        value={this.props.body.markdown[this.props.selectedLocale] || ''}
                                         onChange={this.handleLocaleFieldField.bind(null, 'markdown', this.props.selectedLocale)} />
                     </div>
                     <div className="admin-contents-article__preview">
                         <div className="admin-contents-article__label">
                             <FormLabel>
-                                <FormattedMessage message={intlStore.getMessage(intlData, 'preview')}
-                                                  locales={intlStore.getCurrentLocale()} />
+                                <FormattedMessage id="preview" />
                                 &nbsp;({this.props.selectedLocale})
                             </FormLabel>
                         </div>

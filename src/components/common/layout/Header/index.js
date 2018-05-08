@@ -6,6 +6,7 @@ import React from 'react';
 // Required components
 import Breakpoint from '../../../core/Breakpoint';
 
+
 import DesktopHeader from './DesktopHeader';
 import HandheldsHeader from './HandheldsHeader';
 import HeaderHighlight from './HeaderHighlight';

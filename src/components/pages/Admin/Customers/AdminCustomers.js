@@ -4,10 +4,10 @@
 import React from 'react';
 import connectToStores from 'fluxible-addons-react/connectToStores';
 import moment from 'moment';
-import {FormattedMessage} from 'react-intl';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import PropTypes from 'prop-types';
 
 // Flux
-import IntlStore from '../../../../stores/Application/IntlStore';
 import CustomersListStore from '../../../../stores/Customers/CustomersListStore';
 import fetchCustomers from '../../../../actions/Customers/fetchCustomers';
 
@@ -18,17 +18,15 @@ import StatusIndicator from '../../../common/indicators/StatusIndicator';
 import Table from '../../../common/tables/Table';
 import Text from '../../../common/typography/Text';
 
-// Translation data for this component
-import intlData from './AdminCustomers.intl';
-
 /**
  * Component
  */
 class AdminCustomers extends React.Component {
 
     static contextTypes = {
-        executeAction: React.PropTypes.func.isRequired,
-        getStore: React.PropTypes.func.isRequired
+        executeAction: PropTypes.func.isRequired,
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Initial State ***//
@@ -65,21 +63,11 @@ class AdminCustomers extends React.Component {
         // Helper methods & variables
         //
 
-        let intlStore = this.context.getStore(IntlStore);
-
         let headings = [
-            <FormattedMessage
-                message={intlStore.getMessage(intlData, 'nameHeading')}
-                locales={intlStore.getCurrentLocale()} />,
-            <FormattedMessage
-                message={intlStore.getMessage(intlData, 'emailHeading')}
-                locales={intlStore.getCurrentLocale()} />,
-            <FormattedMessage
-                message={intlStore.getMessage(intlData, 'createdAtHeading')}
-                locales={intlStore.getCurrentLocale()} />,
-            <FormattedMessage
-                message={intlStore.getMessage(intlData, 'status')}
-                locales={intlStore.getCurrentLocale()} />
+            <FormattedMessage id="nameFullHeading" />,
+            <FormattedMessage id="emailHeading" />,
+            <FormattedMessage id="createdAtHeading" />,
+            <FormattedMessage id="statusHeading" />
         ];
 
         let rows = this.state.customers.map(function (customer) {
@@ -116,9 +104,7 @@ class AdminCustomers extends React.Component {
                 <div className="admin-customers__header">
                     <div className="admin-customers__title">
                         <Heading size="medium">
-                            <FormattedMessage
-                                message={intlStore.getMessage(intlData, 'title')}
-                                locales={intlStore.getCurrentLocale()} />
+                            <FormattedMessage id="adminCustomersHeader" />
                         </Heading>
                     </div>
                 </div>

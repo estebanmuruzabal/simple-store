@@ -16,9 +16,7 @@
     }
 }
 
-.info-page__support,
-.info-page__shipping,
-.info-page__terms-and-conditions {
+.info-page__text {
 
     a {
         color: $color-primary;
@@ -26,6 +24,7 @@
 
     p {
         margin-top: 15px;
+        line-height: 32px;
     }
 
     p, ul {

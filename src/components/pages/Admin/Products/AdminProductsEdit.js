@@ -3,8 +3,9 @@
  */
 import React from 'react';
 import connectToStores from 'fluxible-addons-react/connectToStores';
-import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import {Link} from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 // Flux
 import CollectionsStore from '../../../../stores/Collections/CollectionsStore';
@@ -28,17 +29,15 @@ import Spinner from '../../../common/indicators/Spinner';
 import Textarea from '../../../common/forms/Textarea';
 import ToggleSwitch from '../../../common/buttons/ToggleSwitch';
 
-// Translation data for this component
-import intlData from './AdminProductsEdit.intl';
-
 /**
  * Component
  */
 class AdminProductsEdit extends React.Component {
 
     static contextTypes = {
-        executeAction: React.PropTypes.func.isRequired,
-        getStore: React.PropTypes.func.isRequired
+        executeAction: PropTypes.func.isRequired,
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Initial State ***//
@@ -60,7 +59,7 @@ class AdminProductsEdit extends React.Component {
         require('./AdminProductsEdit.scss');
 
         // Load required data
-        this.context.executeAction(fetchProductAndCheckIfFound, this.props.params.productId);
+        this.context.executeAction(fetchProductAndCheckIfFound, this.props.match.params.productId);
     }
 
     componentWillReceiveProps(nextProps) {
@@ -70,8 +69,9 @@ class AdminProductsEdit extends React.Component {
         if (nextProps._error && nextProps._error.validation && nextProps._error.validation.keys) {
             nextProps._error.validation.keys.forEach(function (field) {
                 if (field === 'description') {
+                    fieldErrors['description.uk'] = nextProps._error.validation.details[field];
+                    fieldErrors['description.ru'] = nextProps._error.validation.details[field];
                     fieldErrors['description.en'] = nextProps._error.validation.details[field];
-                    fieldErrors['description.pt'] = nextProps._error.validation.details[field];
                 } else {
                     fieldErrors[field] = nextProps._error.validation.details[field];
                 }
@@ -153,6 +153,12 @@ class AdminProductsEdit extends React.Component {
         this.setState({product: product});
     };
 
+    handlePricingIntlChange = (field, locale, value) => {
+        let product = this.state.product;
+        product.pricing[field][locale] = value;
+        this.setState({product: product});
+    };
+
     handleImageLibraryChange = (images) => {
         let product = this.state.product;
         product.images = images;
@@ -161,16 +167,19 @@ class AdminProductsEdit extends React.Component {
 
     handleSaveClick = () => {
 
-        let intlStore = this.context.getStore(IntlStore);
+        let intl = this.context.intl;
 
         // Client-side validations
         this.setState({fieldErrors: {}});
         let fieldErrors = {};
-        if (!this.state.product.name.en) {
-            fieldErrors.nameEN = intlStore.getMessage(intlData, 'fieldRequired');
+        if (!this.state.product.name.uk) {
+            fieldErrors.nameUA = intl.formatMessage({id: 'fieldRequired'});
         }
-        if (!this.state.product.name.pt) {
-            fieldErrors.namePT = intlStore.getMessage(intlData, 'fieldRequired');
+        if (!this.state.product.name.ru) {
+            fieldErrors.nameRU = intl.formatMessage({id: 'fieldRequired'});
+        }
+        if (!this.state.product.name.en) {
+            fieldErrors.nameEN = intl.formatMessage({id: 'fieldRequired'});
         }
         this.setState({fieldErrors: fieldErrors});
 
@@ -208,8 +217,8 @@ class AdminProductsEdit extends React.Component {
         // Helper methods & variables
         //
 
-        let intlStore = this.context.getStore(IntlStore);
-        let routeParams = {locale: this.context.getStore(IntlStore).getCurrentLocale()}; // Base route params
+        let intl = this.context.intl;
+        let locale = intl.locale;
 
         let getCollectionType = (collectionId) => {
             let collection = this.context.getStore(CollectionsStore).getCollection(collectionId);
@@ -232,7 +241,7 @@ class AdminProductsEdit extends React.Component {
                 let category = this.context.getStore(CollectionsStore).getCollection(collectionId);
                 return {
                     value: category.id,
-                    name: intlStore.getMessage(category.name)
+                    name: category.name[locale]
                 }
             });
 
@@ -242,7 +251,7 @@ class AdminProductsEdit extends React.Component {
                 let collection = this.context.getStore(CollectionsStore).getCollection(collectionId);
                 return {
                     value: collection.id,
-                    name: intlStore.getMessage(collection.name)
+                    name: collection.name[locale]
                 }
             });
         }
@@ -259,27 +268,21 @@ class AdminProductsEdit extends React.Component {
                 <div className="admin-products-edit__header">
                     <div className="admin-products-edit__title">
                         <Heading size="medium">
-                            <FormattedMessage
-                                message={intlStore.getMessage(intlData, 'title')}
-                                locales={intlStore.getCurrentLocale()} />
+                            <FormattedMessage id="adminProductsEditHeader" />
                         </Heading>
                     </div>
                     {this.state.product ?
                         <div className="admin-products-edit__toolbar">
                             <div className="admin-products-edit__toolbar-item">
-                                <Link to="adm-products" params={routeParams}>
+                                <Link to={`/${locale}/adm/products`}>
                                     <Button type="default" disabled={this.state.loading}>
-                                        <FormattedMessage
-                                            message={intlStore.getMessage(intlData, 'back')}
-                                            locales={intlStore.getCurrentLocale()} />
+                                        <FormattedMessage id="backButton" />
                                     </Button>
                                 </Link>
                             </div>
                             <div className="admin-products-edit__toolbar-item">
                                 <Button type="primary" onClick={this.handleSaveClick} disabled={this.state.loading}>
-                                    <FormattedMessage
-                                        message={intlStore.getMessage(intlData, 'save')}
-                                        locales={intlStore.getCurrentLocale()} />
+                                    <FormattedMessage id="saveButton" />
                                 </Button>
                             </div>
                         </div>
@@ -304,27 +307,27 @@ class AdminProductsEdit extends React.Component {
                     <div className="admin-products-edit__form">
                         <div className="admin-products-edit__left-column">
                             <div className="admin-products-edit__form-item">
-                                <ToggleSwitch label={intlStore.getMessage(intlData, 'enabled')}
+                                <ToggleSwitch label={intl.formatMessage({id: 'enabledHeading'})}
                                               enabled={this.state.product.enabled === true}
                                               onChange={this.handleEnabledChange} />
                             </div>
                             <div className="admin-products-edit__form-item">
                                 <InlineItems>
-                                    <InputField label={intlStore.getMessage(intlData, 'sku')}
+                                    <InputField label={intl.formatMessage({id: 'skuHeading'})}
                                                 onChange={this.handleFieldChange.bind(null, 'sku')}
                                                 value={this.state.product.sku}
                                                 error={fieldError('sku')} />
-                                    <InputField label={intlStore.getMessage(intlData, 'stock')}
+                                    <InputField label={intl.formatMessage({id: 'stockHeading'})}
                                                 onChange={this.handleFieldChange.bind(null, 'stock')}
                                                 value={this.state.product.stock}
                                                 error={fieldError('stock')} />
-                                    <Select label={intlStore.getMessage(intlData, 'mainCategory')}
+                                    <Select label={intl.formatMessage({id: 'mainCategory'})}
                                             placeholder
                                             options={productCategories}
                                             value={this.state.product.metadata.mainCategory}
                                             error={fieldError('mainCategory')}
                                             onChange={this.handleMainCategoryChange} />
-                                    <Select label={intlStore.getMessage(intlData, 'mainCollection')}
+                                    <Select label={intl.formatMessage({id: 'mainCollection'})}
                                             placeholder
                                             options={productCollections}
                                             value={this.state.product.metadata.mainCollection}
@@ -333,60 +336,69 @@ class AdminProductsEdit extends React.Component {
                                 </InlineItems>
                             </div>
                             <div className="admin-products-edit__form-item">
-                                <InlineItems label={<FormattedMessage
-                                    message={intlStore.getMessage(intlData, 'sections')}
-                                    locales={intlStore.getCurrentLocale()} />}>
-                                    <Checkbox label={intlStore.getMessage(intlData, 'homepage')}
+                                <InlineItems label={<FormattedMessage id="sections" />}>
+                                    <Checkbox label={intl.formatMessage({id: 'homepage'})}
                                               onChange={this.handleSectionChange.bind(null, 'homepage')}
                                               checked={this.state.product.tags && this.state.product.tags.indexOf('homepage') !== -1} />
                                 </InlineItems>
                             </div>
                             <div className="admin-products-edit__form-item">
-                                <InputField label={intlStore.getMessage(intlData, 'name') + ' (EN)'}
+                                <InputField label={intl.formatMessage({id: 'name'}) + ' (UA)'}
+                                            onChange={this.handleNameChange.bind(null, 'uk')}
+                                            value={this.state.product.name.uk}
+                                            error={fieldError('nameUA')} />
+                            </div>
+                            <div className="admin-products-edit__form-item">
+                                <InputField label={intl.formatMessage({id: 'name'}) + ' (RU)'}
+                                            onChange={this.handleNameChange.bind(null, 'ru')}
+                                            value={this.state.product.name.ru}
+                                            error={fieldError('nameRU')} />
+                            </div>
+                            <div className="admin-products-edit__form-item">
+                                <InputField label={intl.formatMessage({id: 'name'}) + ' (EN)'}
                                             onChange={this.handleNameChange.bind(null, 'en')}
                                             value={this.state.product.name.en}
                                             error={fieldError('nameEN')} />
                             </div>
                             <div className="admin-products-edit__form-item">
-                                <InputField label={intlStore.getMessage(intlData, 'name') + ' (PT)'}
-                                            onChange={this.handleNameChange.bind(null, 'pt')}
-                                            value={this.state.product.name.pt}
-                                            error={fieldError('namePT')} />
+                                <Textarea label={intl.formatMessage({id: 'description'}) + ' (UA)'}
+                                          rows="5"
+                                          onChange={this.handleIntlFieldChange.bind(null, 'description', 'uk')}
+                                          value={this.state.product.description ? this.state.product.description.uk : null}
+                                          error={fieldError('description.uk')} />
                             </div>
                             <div className="admin-products-edit__form-item">
-                                <Textarea label={intlStore.getMessage(intlData, 'description') + ' (EN)'}
+                                <Textarea label={intl.formatMessage({id: 'description'}) + ' (RU)'}
+                                          rows="5"
+                                          onChange={this.handleIntlFieldChange.bind(null, 'description', 'ru')}
+                                          value={this.state.product.description ? this.state.product.description.ru : null}
+                                          error={fieldError('description.ru')} />
+                            </div>
+                            <div className="admin-products-edit__form-item">
+                                <Textarea label={intl.formatMessage({id: 'description'}) + ' (EN)'}
                                           rows="5"
                                           onChange={this.handleIntlFieldChange.bind(null, 'description', 'en')}
                                           value={this.state.product.description ? this.state.product.description.en : null}
                                           error={fieldError('description.en')} />
                             </div>
                             <div className="admin-products-edit__form-item">
-                                <Textarea label={intlStore.getMessage(intlData, 'description') + ' (PT)'}
-                                          rows="5"
-                                          onChange={this.handleIntlFieldChange.bind(null, 'description', 'pt')}
-                                          value={this.state.product.description ? this.state.product.description.pt : null}
-                                          error={fieldError('description.pt')} />
-                            </div>
-                            <div className="admin-products-edit__form-item">
-                                <InlineItems label={<FormattedMessage
-                                    message={intlStore.getMessage(intlData, 'pricing')}
-                                    locales={intlStore.getCurrentLocale()} />}>
-                                    <InputField label={intlStore.getMessage(intlData, 'currency')}
+                                <InlineItems label={<FormattedMessage id="pricing" />}>
+                                    <InputField label={intl.formatMessage({id: 'currency'})}
                                                 labelSize="small" labelWeight="normal"
                                                 value={this.state.product.pricing.currency}
-                                                onChange={this.handlePricingChange.bind(null, 'currency')}
+                                                disabled
                                                 error={fieldError('pricing.currency')} />
-                                    <InputField label={intlStore.getMessage(intlData, 'listPrice')}
+                                    <InputField label={intl.formatMessage({id: 'listPrice'})}
                                                 labelSize="small" labelWeight="normal"
                                                 value={this.state.product.pricing.list}
                                                 onChange={this.handlePricingChange.bind(null, 'list')}
                                                 error={fieldError('pricing.list')} />
-                                    <InputField label={intlStore.getMessage(intlData, 'retailPrice')}
+                                    <InputField label={intl.formatMessage({id: 'retailPrice'})}
                                                 labelSize="small" labelWeight="normal"
                                                 value={this.state.product.pricing.retail}
                                                 onChange={this.handlePricingChange.bind(null, 'retail')}
                                                 error={fieldError('pricing.retail')} />
-                                    <InputField label={intlStore.getMessage(intlData, 'vat')}
+                                    <InputField label={intl.formatMessage({id: 'vat'})}
                                                 labelSize="small" labelWeight="normal"
                                                 value={this.state.product.pricing.vat}
                                                 onChange={this.handlePricingChange.bind(null, 'vat')}
@@ -395,6 +407,7 @@ class AdminProductsEdit extends React.Component {
                             </div>
                             <div className="admin-products-edit__form-item">
                                 <ImageLibraryManager images={this.state.product.images}
+                                                     resource="products"
                                                      onChange={this.handleImageLibraryChange} />
                             </div>
                         </div>
@@ -403,16 +416,14 @@ class AdminProductsEdit extends React.Component {
                                 <CollectionPicker collections={this.state.categories}
                                                   checked={this.state.product.collections}
                                                   onChange={this.handleCollectionPickerChange}>
-                                    <FormattedMessage message={intlStore.getMessage(intlData, 'categories')}
-                                                      locales={intlStore.getCurrentLocale()} />
+                                    <FormattedMessage id="categories" />
                                 </CollectionPicker>
                             </div>
                             <div className="admin-products-edit__form-item">
                                 <CollectionPicker collections={this.state.collections}
                                                   checked={this.state.product.collections}
                                                   onChange={this.handleCollectionPickerChange}>
-                                    <FormattedMessage message={intlStore.getMessage(intlData, 'collections')}
-                                                      locales={intlStore.getCurrentLocale()} />
+                                    <FormattedMessage id="collections" />
                                 </CollectionPicker>
                             </div>
                         </div>

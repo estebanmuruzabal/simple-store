@@ -1,11 +1,16 @@
 // App config the for production environment.
 // Do not require this directly. Use ./src/config instead.
-export default {
+module.exports = {
     app: {
-        title: 'NICI Store',
+        brand: 'Simple Store',
+        title: {
+            uk: 'Simple Store',
+            ru: 'Simple Store',
+            en: 'Simple Store',
+        },
         locale: {
-            available: ['en', 'pt'],
-            default: 'pt'
+            available: ['uk', 'en', 'ru'],
+            default: 'uk'
         }
     },
     api: {
@@ -32,7 +37,7 @@ export default {
         signupFormPostURL: process.env.MAILCHIMP_SIGNUP_FORM_POST_URL
     },
     switchPayments: {
-        enabled: true,
+        enabled: false,
         environment: 'https://api.switchpayments.com/v2/',
         publicKey: process.env.SWITCH_PUBLIC_KEY
     }

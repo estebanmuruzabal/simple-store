@@ -2,17 +2,13 @@
  * Imports
  */
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import { FormattedMessage } from 'react-intl';
+import PropTypes from 'prop-types';
 
-// Flux
-import IntlStore from '../../../stores/Application/IntlStore';
 
 // Required components
 import Label from '../indicators/Label';
 import StatusIndicator from '../indicators/StatusIndicator';
-
-// Translation data for this component
-import intlData from './OrderStatus.intl';
 
 /**
  * Component
@@ -20,13 +16,13 @@ import intlData from './OrderStatus.intl';
 class OrderStatus extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired,
     };
 
     //*** Template ***//
 
     render() {
-        
+
         //
         // Component configurable props
         //
@@ -63,12 +59,7 @@ class OrderStatus extends React.Component {
             default:
                 break;
         }
-        
-        //
-        // Helper methods & variables
-        //
-        let intlStore = this.context.getStore(IntlStore);
-        
+
         //
         // Return
         //
@@ -76,8 +67,7 @@ class OrderStatus extends React.Component {
             <div className="order-status">
                 {this.props.label !== false ?
                     <Label type={labelType} size={labelSize} weight={labelWeight}>
-                        <FormattedMessage message={intlStore.getMessage(intlData, this.props.status)}
-                                          locales={intlStore.getCurrentLocale()} />
+                        <FormattedMessage id={`status_${this.props.status}`} />
                     </Label>
                     :
                     <StatusIndicator status={labelType} />

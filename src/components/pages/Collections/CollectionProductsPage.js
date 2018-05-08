@@ -3,9 +3,11 @@
  */
 import React from 'react';
 import connectToStores from 'fluxible-addons-react/connectToStores';
-import {FormattedMessage} from 'react-intl';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import PropTypes from 'prop-types';
 
 import {slugify} from '../../../utils/strings';
+import config from '../../../config';
 
 // Flux
 import CollectionsStore from '../../../stores/Collections/CollectionsStore';
@@ -20,17 +22,14 @@ import NotFound from '../../pages/NotFound/NotFound';
 import ProductList from '../../common/products/ProductList';
 import ProductsSortingSelect from '../../common/products/ProductsSortingSelect';
 
-// Translation data for this component
-import intlData from './CollectionProductsPage.intl';
-
 /**
  * Component
  */
 class CollectionProductsPage extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired,
-        router: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Required Data ***//
@@ -43,7 +42,7 @@ class CollectionProductsPage extends React.Component {
         if (query.sort) {
             productsQuery.sort = query.sort;
         }
-        context.executeAction(fetchProducts, productsQuery, done);
+        return context.executeAction(fetchProducts, productsQuery, done);
     };
 
     //*** Page Title and Snippets ***//
@@ -52,7 +51,7 @@ class CollectionProductsPage extends React.Component {
         let collection = context.getStore(CollectionsStore).getCollection(params.collectionId);
         if (collection) {
             return {
-                title: context.getStore(IntlStore).getMessage(collection.name)
+                title: `${context.getStore(IntlStore).getMessage(collection.name)} - ${config.app.title[context.getStore(IntlStore).getCurrentLocale()]}`
             }
         } else {
             return {
@@ -92,10 +91,10 @@ class CollectionProductsPage extends React.Component {
     //*** View Controllers ***//
 
     handleSortChange = (value) => {
-        this.context.router.transitionTo('collection', {
-            locale: this.context.getStore(IntlStore).getCurrentLocale(),
-            collectionId: this.props.params.collectionId
-        }, {sort: value});
+        this.props.history.push({
+            pathname: `/${this.context.intl.locale}/collections/${this.props.match.params.collectionId}`,
+            search: `?sort=${value}`
+        });
     };
 
     //*** Template ***//
@@ -106,9 +105,8 @@ class CollectionProductsPage extends React.Component {
         // Helper methods & variables
         //
 
-        let intlStore = this.context.getStore(IntlStore);
-        let routeParams = {locale: intlStore.getCurrentLocale()}; // Base route params
-        let collection = this.context.getStore(CollectionsStore).getCollection(this.props.params.collectionId);
+        let locale = this.context.intl.locale;
+        let collection = this.context.getStore(CollectionsStore).getCollection(this.props.match.params.collectionId);
 
         // Stuff that only makes sense (and will crash otherwise) if collection exists
         if (collection) {
@@ -116,34 +114,26 @@ class CollectionProductsPage extends React.Component {
             // Breadcrumbs
             var breadcrumbs = [
                 {
-                    name: <FormattedMessage
-                              message={intlStore.getMessage(intlData, 'homepage')}
-                              locales={intlStore.getCurrentLocale()} />,
-                    to: 'homepage',
-                    params: routeParams
+                    name: this.context.intl.formatMessage({id: "homepage"}),
+                    to: `/${this.context.intl.locale}`,
                 },
                 {
-                    name: <FormattedMessage
-                        message={intlStore.getMessage(intlData, 'productsList')}
-                        locales={intlStore.getCurrentLocale()} />,
-                    to: 'products',
-                    params: routeParams
+                    name: this.context.intl.formatMessage({id: "productsList"}),
+                    to: `/${this.context.intl.locale}/products`,
                 },
                 {
-                    name: <FormattedMessage
-                              message={intlStore.getMessage(collection.name)}
-                              locales={intlStore.getCurrentLocale()} />
+                    name: collection.name[locale]
                 }
             ];
 
             // Products SideMenu
             var filters = [
                 {
-                    name: {en: 'Categories', pt: 'Categorias'},
+                    name: this.context.intl.formatMessage({id: 'categories'}),
                     collections: this.state.categories
                 },
                 {
-                    name: {en: 'Collections', pt: 'Colecções'},
+                    name: this.context.intl.formatMessage({id: 'collections'}),
                     collections: this.state.collections
                 }
             ];
@@ -160,11 +150,10 @@ class CollectionProductsPage extends React.Component {
                             <div className="collection-products-page__breadcrumbs">
                                 <Breadcrumbs links={breadcrumbs}>
                                     {this.state.totalPages > 0 ?
-                                        <FormattedMessage
-                                            message={intlStore.getMessage(intlData, 'pagination')}
-                                            locales={intlStore.getCurrentLocale()}
-                                            currentPage={this.state.currentPage}
-                                            totalPages={this.state.totalPages} />
+                                        <FormattedMessage id="pagination"
+                                            values={{
+                                                currentPage: this.state.currentPage,
+                                                totalPages: this.state.totalPages }} />
                                         :
                                         null
                                     }
@@ -176,12 +165,11 @@ class CollectionProductsPage extends React.Component {
                         </div>
 
                         <div className="collection-products-page__products">
-                            <ProductList title={<FormattedMessage message={intlStore.getMessage(collection.name)}
-                                                                  locales={intlStore.getCurrentLocale()} />}
+                            <ProductList title={collection.name[locale]}
                                          filters={filters}
+                                         location={this.props.location}
                                          collection={collection}
                                          products={this.state.products}
-                                         routeParams={Object.assign({collectionId: collection.id}, routeParams)}
                                          totalPages={this.state.totalPages}
                                          currentPage={this.state.currentPage} />
                         </div>

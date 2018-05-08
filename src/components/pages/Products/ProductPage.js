@@ -4,9 +4,11 @@
 import React from 'react';
 import async from 'async';
 import connectToStores from 'fluxible-addons-react/connectToStores';
-import {FormattedMessage, FormattedNumber} from 'react-intl';
+import { FormattedMessage, FormattedNumber, injectIntl, intlShape } from 'react-intl';
+import PropTypes from 'prop-types';
 
 import {slugify} from '../../../utils/strings';
+import config from '../../../config';
 
 // Flux
 import CartStore from '../../../stores/Cart/CartStore';
@@ -34,23 +36,21 @@ import ProductSuggestions from '../../common/products/ProductSuggestions';
 import QuantitySelector from '../../common/forms/QuantitySelector';
 import Text from '../../common/typography/Text';
 
-// Translation data for this component
-import intlData from './ProductPage.intl';
-
 /**
  * Component
  */
 class ProductPage extends React.Component {
 
     static contextTypes = {
-        executeAction: React.PropTypes.func.isRequired,
-        getStore: React.PropTypes.func.isRequired
+        executeAction: PropTypes.func.isRequired,
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Required Data ***//
 
     static fetchData = function (context, params, query, done) {
-        async.parallel([
+        return async.parallel([
             function (callback) {
                 context.executeAction(fetchProductAndCheckIfFound, params.productId, callback);
             },
@@ -67,7 +67,7 @@ class ProductPage extends React.Component {
         let product = context.getStore(ProductDetailsStore).getProduct();
         if (product) {
             return {
-                title: context.getStore(IntlStore).getMessage(product.name)
+                title: `${context.getStore(IntlStore).getMessage(product.name)} - ${config.app.title[context.getStore(IntlStore).getCurrentLocale()]}`
             }
         } else {
             return {
@@ -183,25 +183,17 @@ class ProductPage extends React.Component {
         //
         // Helper methods & variables
         //
-
-        let intlStore = this.context.getStore(IntlStore);
-        let routeParams = {locale: intlStore.getCurrentLocale()}; // Base route params
+        let locale = this.context.intl.locale;
 
         // Breadcrumbs
         let breadcrumbs = [
             {
-                name: <FormattedMessage
-                          message={intlStore.getMessage(intlData, 'homepage')}
-                          locales={intlStore.getCurrentLocale()} />,
-                to: 'homepage',
-                params: routeParams
+                name: <FormattedMessage id="homepage" />,
+                to: `/${locale}`,
             },
             {
-                name: <FormattedMessage
-                    message={intlStore.getMessage(intlData, 'productsList')}
-                    locales={intlStore.getCurrentLocale()} />,
-                to: 'products',
-                params: routeParams
+                name: <FormattedMessage id="productsList" />,
+                to: `/${locale}/products/`,
             }
         ];
 
@@ -209,14 +201,8 @@ class ProductPage extends React.Component {
             let collection = this.context.getStore(CollectionsStore).getCollection(collectionId);
             if (collection) {
                 breadcrumbs.push({
-                    name: <FormattedMessage
-                              message={intlStore.getMessage(collection.name)}
-                              locales={intlStore.getCurrentLocale()} />,
-                    to: 'collection-slug',
-                    params: Object.assign({
-                        collectionId: collection.id,
-                        collectionSlug: slugify(intlStore.getMessage(collection.name))
-                    }, routeParams)
+                    name: collection.name[locale],
+                    to: `/${locale}/collections/${collection.id}/${slugify(collection.name)}`,
                 });
             }
         };
@@ -246,9 +232,7 @@ class ProductPage extends React.Component {
                     <div>
                         <div className="product-page__header">
                             <Breadcrumbs links={breadcrumbs} weight="bold">
-                                <FormattedMessage
-                                    message={intlStore.getMessage(this.state.product.name)}
-                                    locales={intlStore.getCurrentLocale()} />
+                                {this.state.product.name[locale]}
                             </Breadcrumbs>
                         </div>
 
@@ -270,9 +254,7 @@ class ProductPage extends React.Component {
                             <div className="product-page__details">
                                 <div className="product-page__name" itemProp="name">
                                     <Heading size="large">
-                                        <FormattedMessage
-                                            message={intlStore.getMessage(this.state.product.name)}
-                                            locales={intlStore.getCurrentLocale()} />
+                                        {this.state.product.name[locale]}
                                     </Heading>
                                 </div>
                                 {this.state.product.pricing ?
@@ -284,7 +266,7 @@ class ProductPage extends React.Component {
                                             {this.state.product.pricing.currency}
                                         </div>
                                         <div>
-                                            <Text size="medium" weight="bold">
+                                            <Text size="large" weight="normal">
                                                 <FormattedNumber
                                                     value={this.state.product.pricing.retail}
                                                     style="currency"
@@ -297,7 +279,8 @@ class ProductPage extends React.Component {
                                 }
                                 <div className="product-page__sku">
                                     <Text size="small">
-                                        Ref: <span itemProp="sku">{this.state.product.sku}</span>
+                                        <FormattedMessage id="ref" />:
+                                        <span itemProp="sku">{this.state.product.sku}</span>
                                     </Text>
                                 </div>
                                 <div className="product-page__add">
@@ -310,15 +293,11 @@ class ProductPage extends React.Component {
                                             <Button type="primary"
                                                     onClick={this.handleAddToCartClick}
                                                     disabled={this.state.quantity <= 0 || this.state.cartLoading}>
-                                                <FormattedMessage
-                                                    message={intlStore.getMessage(intlData, 'addToCart')}
-                                                    locales={intlStore.getCurrentLocale()} />
+                                                <FormattedMessage id="addToCart"/>
                                             </Button>
                                             :
                                             <Button type="primary" disabled={true}>
-                                                <FormattedMessage
-                                                    message={intlStore.getMessage(intlData, 'outOfStock')}
-                                                    locales={intlStore.getCurrentLocale()} />
+                                                <FormattedMessage id="outOfStock" />
                                             </Button>
                                         }
                                     </div>
@@ -327,37 +306,31 @@ class ProductPage extends React.Component {
                                 <div className="product-page__description">
                                     <div className="product-page__description-label">
                                         <Heading size="medium">
-                                            <FormattedMessage
-                                                message={intlStore.getMessage(intlData, 'descriptionLabel')}
-                                                locales={intlStore.getCurrentLocale()} />
+                                            <FormattedMessage id="descriptionLabel" />
                                         </Heading>
                                     </div>
                                     <div className="product-page__description-content" itemProp="description">
                                         <Text size="small">
-                                            <FormattedMessage
-                                                message={intlStore.getMessage(this.state.product.description)}
-                                                locales={intlStore.getCurrentLocale()} />
+                                            {this.state.product.description[locale]}
                                         </Text>
                                     </div>
                                 </div>
 
-                                {this.state.contents.map(function (content) {
+                                {this.state.contents.map(function (content, idx) {
                                     return (
-                                        <div className="product-page__content">
+                                        <div key={idx} className="product-page__content">
                                             <ArticleSummary content={content} />
                                         </div>
                                     );
                                 })}
                             </div>
-                            
+
                             {!this.state.suggestionsLoading && this.state.suggestions.length === 0 ?
                                 <div className="product-page__suggestions product-page__suggestions--no-border"></div>
                                 :
                                 <div className="product-page__suggestions">
                                     <ProductSuggestions products={this.state.suggestions} loading={this.state.suggestionsLoading}>
-                                        <FormattedMessage
-                                            message={intlStore.getMessage(intlData, 'crossSell')}
-                                            locales={intlStore.getCurrentLocale()} />
+                                        <FormattedMessage id="crossSell" />
                                     </ProductSuggestions>
                                 </div>
                             }

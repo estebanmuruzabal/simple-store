@@ -1,6 +1,6 @@
-import keyMirror from 'react/lib/keyMirror';
+import keymirror from 'keymirror';
 
-export default keyMirror({
+export default keymirror({
 
     ACCOUNT_FETCH: null,
     ACCOUNT_FETCH_SUCCESS: null,

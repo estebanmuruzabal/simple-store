@@ -13,16 +13,5 @@
 }
 
 .checkout-customer-details__edit, {
-    width: 100px;
-    padding: 10px;
-    text-align: center;
-    border: 1px solid #eee;
-    border-radius: 3px;
-    cursor: pointer;
-
-    &:hover {
-        span {
-            color: $color-primary;
-        }
-    }
+    width: 190px;
 }

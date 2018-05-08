@@ -2,10 +2,11 @@
  * Imports.
  */
 import React from 'react';
+import { injectIntl, intlShape } from 'react-intl';
+import PropTypes from 'prop-types';
 
 // Flux.
 import AccountStore from '../../stores/Account/AccountStore';
-import IntlStore from '../../stores/Application/IntlStore';
 
 // Required components
 import Spinner from '../common/indicators/Spinner';
@@ -24,9 +25,9 @@ export default (ComposedComponent, scope) => {
     class AuthenticatedComponent extends React.Component {
 
         static contextTypes = {
-            executeAction: React.PropTypes.func.isRequired,
-            getStore: React.PropTypes.func.isRequired,
-            router: React.PropTypes.func.isRequired
+            executeAction: PropTypes.func.isRequired,
+            getStore: PropTypes.func.isRequired,
+            intl: intlShape.isRequired,
         };
 
         //*** Page Title and Snippets ***//
@@ -52,11 +53,7 @@ export default (ComposedComponent, scope) => {
             if (!isLoading && accountDetails && isAuthorized) {
                 this.setState({processed: true});
             } else if (!isLoading) {
-                this.context.router.transitionTo(
-                    'login',
-                    {locale: this.context.getStore(IntlStore).getCurrentLocale()},
-                    {next: this.context.router.getCurrentPath()}
-                );
+                this.props.history.push(`/${this.context.intl.locale}/login?next=${this.props.location.pathname}`);
             }
         }
 

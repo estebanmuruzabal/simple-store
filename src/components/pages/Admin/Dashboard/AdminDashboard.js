@@ -3,10 +3,8 @@
  */
 import React from 'react';
 import connectToStores from 'fluxible-addons-react/connectToStores';
-import {FormattedMessage} from 'react-intl';
-
-// Flux
-import IntlStore from '../../../../stores/Application/IntlStore';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import PropTypes from 'prop-types';
 
 import fetchContents from '../../../../actions/Contents/fetchContents';
 
@@ -16,22 +14,20 @@ import Heading from '../../../common/typography/Heading';
 import AdminHomepageSettings from './AdminHomepageSettings';
 import AdminMainNavigation from './AdminMainNavigation';
 
-// Translation data for this component
-import intlData from './AdminDashboard.intl';
-
 /**
  * Component
  */
 class AdminDashboard extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Required Data ***//
 
     static fetchData = function (context, params, query, done) {
-        context.executeAction(fetchContents, {type: 'banner', tags: 'homepage'}, done);
+        return context.executeAction(fetchContents, {type: 'banner', tags: 'homepage'}, done);
     };
 
     //*** Component Lifecycle ***//
@@ -45,15 +41,12 @@ class AdminDashboard extends React.Component {
     //*** Template ***//
 
     render() {
-        let intlStore = this.context.getStore(IntlStore);
         return (
             <div className="admin-dashboard">
                 <div className="admin-dashboard__header">
                     <div className="admin-dashboard__title">
                         <Heading size="medium">
-                            <FormattedMessage
-                                message={intlStore.getMessage(intlData, 'title')}
-                                locales={intlStore.getCurrentLocale()} />
+                            <FormattedMessage id="adminDashboardHeader" />
                         </Heading>
                     </div>
                     <div className="admin-dashboard__toolbar"></div>
@@ -62,9 +55,7 @@ class AdminDashboard extends React.Component {
                 <div className="admin-dashboard__settings-block">
                     <div className="admin-dashboard__settings-title">
                         <Heading size="medium">
-                            <FormattedMessage
-                                message={intlStore.getMessage(intlData, 'mainNavigationSettingsTitle')}
-                                locales={intlStore.getCurrentLocale()} />
+                            <FormattedMessage id="mainNavigationSettingsTitle" />
                         </Heading>
                     </div>
                     <AdminMainNavigation />
@@ -73,9 +64,7 @@ class AdminDashboard extends React.Component {
                 <div className="admin-dashboard__settings-block">
                     <div className="admin-dashboard__settings-title">
                         <Heading size="medium">
-                            <FormattedMessage
-                                message={intlStore.getMessage(intlData, 'homepageSettingsTitle')}
-                                locales={intlStore.getCurrentLocale()} />
+                            <FormattedMessage id="homepageSettingsTitle" />
                         </Heading>
                     </div>
                     <AdminHomepageSettings />

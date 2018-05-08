@@ -10,7 +10,7 @@ import IntlStore from '../../stores/Application/IntlStore';
 import checkoutActions from '../../constants/checkout';
 
 // Instantiate logger
-let debug = require('debug')('nicistore');
+let debug = require('debug')('simple-store');
 
 /**
  * Partial checkout update

@@ -4,8 +4,9 @@
 import React from 'react';
 import connectToStores from 'fluxible-addons-react/connectToStores';
 import moment from 'moment';
-import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import {Link} from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 // Flux
 import IntlStore from '../../../../stores/Application/IntlStore';
@@ -20,17 +21,15 @@ import Table from '../../../common/tables/Table';
 import Text from '../../../common/typography/Text';
 import ToggleSwitch from '../../../common/buttons/ToggleSwitch';
 
-// Translation data for this component
-import intlData from './AdminOrders.intl';
-
 /**
  * Component
  */
 class AdminOrders extends React.Component {
 
     static contextTypes = {
-        executeAction: React.PropTypes.func.isRequired,
-        getStore: React.PropTypes.func.isRequired
+        executeAction: PropTypes.func.isRequired,
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Initial State ***//
@@ -77,23 +76,14 @@ class AdminOrders extends React.Component {
         // Helper methods & variables
         //
 
-        let intlStore = this.context.getStore(IntlStore);
-        let routeParams = {locale: this.context.getStore(IntlStore).getCurrentLocale()}; // Base route params
+        let locale = this.context.intl.locale;
 
         // Order list table headings
         let headings = [
-            <FormattedMessage
-                message={intlStore.getMessage(intlData, 'dateHeading')}
-                locales={intlStore.getCurrentLocale()} />,
-            <FormattedMessage
-                message={intlStore.getMessage(intlData, 'idHeading')}
-                locales={intlStore.getCurrentLocale()} />,
-            <FormattedMessage
-                message={intlStore.getMessage(intlData, 'emailHeading')}
-                locales={intlStore.getCurrentLocale()} />,
-            <FormattedMessage
-                message={intlStore.getMessage(intlData, 'statusHeading')}
-                locales={intlStore.getCurrentLocale()} />
+            <FormattedMessage id="dateHeading" />,
+            <FormattedMessage id="idHeading" />,
+            <FormattedMessage id="emailHeading" />,
+            <FormattedMessage id="statusHeading" />
         ];
 
         // Order list table rows
@@ -102,7 +92,7 @@ class AdminOrders extends React.Component {
                 data: [
                     <Text size="medium">{moment(order.createdAt).format('YYYY/MM/DD HH:mm:ss')}</Text>,
                     <span className="admin-orders__link">
-                        <Link to="adm-order-edit" params={Object.assign({orderId: order.id}, routeParams)}>
+                        <Link to={`/${locale}/adm/orders/${order.id}`} >
                             <Text size="small">{order.id}</Text>
                         </Link>
                     </span>,
@@ -129,13 +119,12 @@ class AdminOrders extends React.Component {
                 <div className="admin-orders__header">
                     <div className="admin-orders__title">
                         <Heading size="medium">
-                            <FormattedMessage message={intlStore.getMessage(intlData, 'title')}
-                                              locales={intlStore.getCurrentLocale()} />
+                            <FormattedMessage id="adminOrderHeader" />
                         </Heading>
                     </div>
                     <div className="admin-orders__toolbar">
                         <div className="admin-orders__toolbar-item">
-                            <ToggleSwitch label={intlStore.getMessage(intlData, 'showAll')}
+                            <ToggleSwitch label={this.context.intl.formatMessage({id: 'showAll'})}
                                           inline
                                           enabled={this.state.showAllOrders}
                                           onChange={this.handleShowAllOrdersChange} />
@@ -159,8 +148,7 @@ class AdminOrders extends React.Component {
                 {!this.state.loading && this.state.orders.length === 0 ?
                     <div className="admin-orders__no-results">
                         <Text size="small">
-                            <FormattedMessage message={intlStore.getMessage(intlData, 'noResults')}
-                                              locales={intlStore.getCurrentLocale()} />
+                            <FormattedMessage id="noResults" />
                         </Text>
                     </div>
                     :

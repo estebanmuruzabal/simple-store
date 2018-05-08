@@ -3,12 +3,13 @@
  */
 import React from 'react';
 import connectToStores from 'fluxible-addons-react/connectToStores';
-import {Link} from 'react-router';
+import { injectIntl, intlShape } from 'react-intl';
+import {Link} from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 // Flux
 import CartStore from '../../../../stores/Cart/CartStore';
 import DrawerStore from '../../../../stores/Application/DrawerStore';
-import IntlStore from '../../../../stores/Application/IntlStore';
 import triggerDrawer from '../../../../actions/Application/triggerDrawer';
 
 // Required components
@@ -20,8 +21,9 @@ import Badge from '../../indicators/Badge';
 class HandheldsHeader extends React.Component {
 
     static contextTypes = {
-        executeAction: React.PropTypes.func.isRequired,
-        getStore: React.PropTypes.func.isRequired
+        executeAction: PropTypes.func.isRequired,
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Initial State ***//
@@ -34,7 +36,6 @@ class HandheldsHeader extends React.Component {
     //*** Component Lifecycle ***//
 
     componentDidMount() {
-
         // Component styles
         require('./HandheldsHeader.scss');
     }
@@ -55,10 +56,6 @@ class HandheldsHeader extends React.Component {
     //*** Template ***//
 
     render() {
-
-        // Helper variables
-        let routeParams = {locale: this.context.getStore(IntlStore).getCurrentLocale()};
-
         // Return
         return (
             <div className="handhelds-header">
@@ -70,8 +67,9 @@ class HandheldsHeader extends React.Component {
                     }
                 </div>
                 <div className="handhelds-header__title">
-                    <Link to='homepage' params={routeParams}>
-                        <div className="handhelds-header__logo"></div>
+                    <Link to={`/${this.context.intl.locale}`}>
+                        <div className="handhelds-header__logo">
+                        </div>
                     </Link>
                 </div>
                 <div className="handhelds-header__right-actions">

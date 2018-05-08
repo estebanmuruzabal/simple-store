@@ -12,7 +12,7 @@ import orderActions from '../../constants/orders';
 import config from '../../config';
 
 // Instantiate logger
-let debug = require('debug')('nicistore');
+let debug = require('debug')('simple-store');
 
 /**
  * Create a new order
@@ -81,7 +81,7 @@ export default function createOrder(context, payload, done) {
                 eventsUrl: `${eventsAPIBaseUrl}/orders/${order.id}/spwh`,
                 instrument: Object.assign(payload.paymentDetails.instrument, {
                     type: payload.paymentDetails.chargeType,
-                    country: 'PT'
+                    country: 'UA'
                 })
             }).then(function successFn() {
                 dispatchOrderCreatedSuccessfully();

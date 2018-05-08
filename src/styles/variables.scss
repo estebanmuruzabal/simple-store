@@ -1,6 +1,6 @@
 @import './mixins/breakpoints';
 
-$font-family-heading: 'Montserrat', sans-serif;
+$font-family-heading: 'Open Sans', sans-serif;
 $font-family-body: 'Open Sans', sans-serif;
 $font-size-small: 13px;
 $font-size-medium: 16px;
@@ -11,12 +11,12 @@ $font-size-heading-large: 30px;
 $font-weight-normal: normal;
 $font-weight-bold: 700;
 
-$color-heading: #5c433d;
-$color-body: rgb(85, 85, 85);
-$color-primary: rgb(194, 0, 48);
-$color-primary-hover: #EC003B;
-$color-secondary: #f4efe1;
-$color-error: red;
+$color-heading: #3a2f00;
+$color-body: #555;
+$color-primary: #ffd000;
+$color-primary-hover: lighten($color-primary, 10%);
+$color-secondary: #fcf7e3;
+$color-error: #e51108;
 $color-label-default: #aaaaaa;
 $color-label-primary: #337ab7;
 $color-label-info: #5bc0de;

@@ -79,16 +79,16 @@ class CartStore extends BaseStore {
     }
 
     getCartId() {
-        if (typeof localStorage != 'undefined') {
-            return localStorage.getItem('cartId');
+        if (this && this.getContext && this.getContext().getCookie) {
+            return this.getContext().getCookie('cartId');
         } else {
             return null;
         }
     }
 
     getCartAccessToken() {
-        if (typeof localStorage != 'undefined') {
-            return localStorage.getItem('cartAccessToken');
+        if (this && this.getContext && this.getContext().getCookie) {
+            return this.getContext().getCookie('cartAccessToken');
         } else {
             return null;
         }
@@ -150,11 +150,12 @@ class CartStore extends BaseStore {
         this.loading = false;
         this.error = null;
         this.cart = payload;
-        localStorage.setItem('cartId', payload.id);
+        this.getContext().setCookie('cartId', payload.id, {maxAge: 100 * 24 * 60 * 60, path: '/'});
+
         if (!payload.userId && payload.accessToken) {
-            localStorage.setItem('cartAccessToken', payload.accessToken);
+            this.getContext().setCookie('cartAccessToken', payload.accessToken, {maxAge: 100 * 24 * 60 * 60, path: '/'});
         } else {
-            localStorage.removeItem('cartAccessToken');
+            this.getContext().clearCookie('cartAccessToken');
         }
         this.emitChange();
     }
@@ -176,8 +177,8 @@ class CartStore extends BaseStore {
         this.loading = false;
         this.error = null;
         this.cart = payload;
-        localStorage.setItem('cartId', payload.id);
-        localStorage.removeItem('cartAccessToken');
+        this.getContext().setCookie('cartId', payload.id, {maxAge: 100 * 24 * 60 * 60, path: '/'});
+        this.getContext().clearCookie('cartAccessToken');
         this.emitChange();
     }
 

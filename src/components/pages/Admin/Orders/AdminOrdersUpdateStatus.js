@@ -2,21 +2,16 @@
  * Imports
  */
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
-
-// Flux
-import IntlStore from '../../../../stores/Application/IntlStore';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import PropTypes from 'prop-types';
 
 // Required components
 import Button from '../../../common/buttons/Button';
 import InputField from '../../../common/forms/InputField';
 import Select from '../../../common/forms/Select';
 
-// Translation data for this component
-import intlData from './AdminOrdersUpdateStatus.intl';
-
 // Instantiate logger
-let debug = require('debug')('nicistore');
+let debug = require('debug')('simple-store');
 
 /**
  * Component
@@ -24,7 +19,8 @@ let debug = require('debug')('nicistore');
 class AdminOrdersUpdateStatus extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Initial State ***//
@@ -34,11 +30,11 @@ class AdminOrdersUpdateStatus extends React.Component {
         description: undefined,
         fieldErrors: {}
     };
-    
+
     //*** Component Lifecycle ***//
-    
+
     componentDidMount() {
-        
+
         // Component styles
         require('./AdminOrdersUpdateStatus.scss');
     }
@@ -67,16 +63,16 @@ class AdminOrdersUpdateStatus extends React.Component {
     };
 
     handleSubmitClick = () => {
-        let intlStore = this.context.getStore(IntlStore);
+        let intl = this.context.intl;
 
         this.setState({fieldErrors: {}});
         let fieldErrors = {};
         if (!this.state.status) {
-            fieldErrors.status = intlStore.getMessage(intlData, 'fieldRequired');
+            fieldErrors.status = intl.formatMessage({id: 'fieldRequired'});
         }
-        if (!this.state.description) {
-            fieldErrors.description = intlStore.getMessage(intlData, 'fieldRequired');
-        }
+        // if (!this.state.description) {
+        //     fieldErrors.description = intl.formatMessage({id: 'fieldRequired'});
+        // }
         this.setState({fieldErrors: fieldErrors});
 
         if (Object.keys(fieldErrors).length === 0) {
@@ -94,21 +90,31 @@ class AdminOrdersUpdateStatus extends React.Component {
         // Helper methods & variables
         //
 
-        let intlStore = this.context.getStore(IntlStore);
+        let intl = this.context.intl;
 
-        let statusOptions = [];
-        if (['created', 'pendingPayment', 'paymentError', 'paid', 'processing', 'ready'].indexOf(this.props.order.status) !== -1) {
-            statusOptions.push({name: intlStore.getMessage(intlData, 'cancelOrder'), value: 'canceled'});
-        }
-        if (this.props.order.status === 'paid') {
-            statusOptions.push({name: intlStore.getMessage(intlData, 'processing'), value: 'processing'});
-        }
-        if (this.props.order.status === 'processing') {
-            statusOptions.push({name: intlStore.getMessage(intlData, 'ready'), value: 'ready'});
-        }
-        if (this.props.order.status === 'ready') {
-            statusOptions.push({name: intlStore.getMessage(intlData, 'shipped'), value: 'shipped'});
-        }
+        // let statusOptions = [];
+        // if (['created', 'pendingPayment', 'paymentError', 'paid', 'processing', 'ready'].indexOf(this.props.order.status) !== -1) {
+        //     statusOptions.push({name: intl.formatMessage({id: 'status_cancelOrder'}), value: 'canceled'});
+        // }
+        // if (this.props.order.status === 'paid') {
+        //     statusOptions.push({name: intl.formatMessage({id: 'status_processing'}), value: 'processing'});
+        // }
+        // if (this.props.order.status === 'processing') {
+        //     statusOptions.push({name: intl.formatMessage({id: 'status_ready'}), value: 'ready'});
+        // }
+        // if (this.props.order.status === 'ready') {
+        //     statusOptions.push({name: intl.formatMessage({id: 'status_shipped'}), value: 'shipped'});
+        // }
+
+        let statusOptions = [
+            {name: intl.formatMessage({id: 'status_created'}), value: 'created'},
+            {name: intl.formatMessage({id: 'status_canceled'}), value: 'canceled'},
+            {name: intl.formatMessage({id: 'status_pendingPayment'}), value: 'pendingPayment'},
+            {name: intl.formatMessage({id: 'status_paid'}), value: 'paid'},
+            {name: intl.formatMessage({id: 'status_processing'}), value: 'processing'},
+            {name: intl.formatMessage({id: 'status_ready'}), value: 'ready'},
+            {name: intl.formatMessage({id: 'status_shipped'}), value: 'shipped'},
+        ];
 
         //
         // Return
@@ -116,30 +122,27 @@ class AdminOrdersUpdateStatus extends React.Component {
         return (
             <div className="admin-orders-update-status">
                 <div className="admin-orders-update-status__form-item">
-                    <Select label={intlStore.getMessage(intlData, 'status')}
+                    <Select label={intl.formatMessage({id: 'status'})}
                             placeholder
                             options={statusOptions}
                             onChange={this.handleStatusChange}
+                            value={this.state.status}
                             error={this.state.fieldErrors.status} />
                 </div>
                 <div className="admin-orders-update-status__form-item">
-                    <InputField label={intlStore.getMessage(intlData, 'description')}
+                    <InputField label={intl.formatMessage({id: 'description'})}
                                 onChange={this.handleDescriptionChange}
                                 error={this.state.fieldErrors.description}/>
                 </div>
                 <div className="admin-orders-update-status__actions">
                     <div className="admin-orders-update-status__button">
                         <Button type="default" onClick={this.props.onCancelClick} disabled={this.props.loading}>
-                            <FormattedMessage
-                                message={intlStore.getMessage(intlData, 'cancel')}
-                                locales={intlStore.getCurrentLocale()} />
+                            <FormattedMessage id="cancelButton" />
                         </Button>
                     </div>
                     <div className="admin-orders-update-status__button">
                         <Button type="primary" onClick={this.handleSubmitClick} disabled={this.props.loading}>
-                            <FormattedMessage
-                                message={intlStore.getMessage(intlData, 'submit')}
-                                locales={intlStore.getCurrentLocale()} />
+                            <FormattedMessage id="updateButton" />
                         </Button>
                     </div>
                 </div>

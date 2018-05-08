@@ -48,46 +48,47 @@ import apiPlugin from './utils/apiPlugin';
  */
 const app = new Fluxible({
     component: Routes,
-    stores: [
-        AccountStore,
-        ApplicationStore,
-        CartStore,
-        CheckoutStore,
-        CollectionsAddStore,
-        CollectionsFeaturedHomepage,
-        CollectionsStore,
-        CollectionsListStore,
-        CollectionDetailsStore,
-        ContentsAddStore,
-        ContentsListStore,
-        ContentDetailsStore,
-        CustomersListStore,
-        DrawerStore,
-        FileUploadStore,
-        IntlStore,
-        LoginStore,
-        NotificationQueueStore,
-        OrderDetailsStore,
-        OrderEmailStore,
-        OrdersListStore,
-        OrderStore,
-        PageLoadingStore,
-        ProductContentsStore,
-        ProductDetailsStore,
-        ProductsAddStore,
-        ProductsHomepageStore,
-        ProductsListStore,
-        ProductSuggestionsStore,
-        RegisterStore,
-        ResetStore,
-        ResponsiveStore
-    ]
 });
 
 // Plug plugins
 app.plug(apiPlugin);
 
+
+// Register stores
+app.registerStore(AccountStore);
+app.registerStore(ApplicationStore);
+app.registerStore(CartStore);
+app.registerStore(CheckoutStore);
+app.registerStore(CollectionsAddStore);
+app.registerStore(CollectionsFeaturedHomepage);
+app.registerStore(CollectionsStore);
+app.registerStore(CollectionsListStore);
+app.registerStore(CollectionDetailsStore);
+app.registerStore(ContentsAddStore);
+app.registerStore(ContentsListStore);
+app.registerStore(ContentDetailsStore);
+app.registerStore(CustomersListStore);
+app.registerStore(DrawerStore);
+app.registerStore(FileUploadStore);
+app.registerStore(IntlStore);
+app.registerStore(LoginStore);
+app.registerStore(NotificationQueueStore);
+app.registerStore(OrderDetailsStore);
+app.registerStore(OrderEmailStore);
+app.registerStore(OrdersListStore);
+app.registerStore(OrderStore);
+app.registerStore(PageLoadingStore);
+app.registerStore(ProductContentsStore);
+app.registerStore(ProductDetailsStore);
+app.registerStore(ProductsAddStore);
+app.registerStore(ProductsHomepageStore);
+app.registerStore(ProductsListStore);
+app.registerStore(ProductSuggestionsStore);
+app.registerStore(RegisterStore);
+app.registerStore(ResetStore);
+app.registerStore(ResponsiveStore);
+
 /**
  * Export
  */
-export default app;
+module.exports = app;

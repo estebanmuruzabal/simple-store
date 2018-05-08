@@ -2,8 +2,9 @@ import areIntlLocalesSupported from 'intl-locales-supported';
 
 let localesMyAppSupports = [
     /* list locales here */
-    'en',
-    'pt'
+    'uk',
+    'ru',
+    'en'
 ];
 
 if (global.Intl) {

@@ -21,6 +21,10 @@ function capitalise(string) {
  * @returns {string}
  */
 function slugify(text) {
+    if (typeof text !== 'string' && !(text instanceof String)) {
+        return '';
+    }
+
     text = text.replace(/^\s+|\s+$/g, ''); // trim
     text = text.toLowerCase();
 

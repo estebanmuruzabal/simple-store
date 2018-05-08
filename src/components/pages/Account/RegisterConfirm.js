@@ -3,11 +3,11 @@
  */
 import React from 'react';
 import connectToStores from 'fluxible-addons-react/connectToStores';
-import {FormattedMessage} from 'react-intl';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import PropTypes from 'prop-types';
 
 // Flux
 import AccountStore from '../../../stores/Account/AccountStore';
-import IntlStore from '../../../stores/Application/IntlStore';
 import RegisterStore from '../../../stores/Account/RegisterStore';
 
 import confirmAccount from '../../../actions/Account/confirmAccount';
@@ -16,18 +16,15 @@ import confirmAccount from '../../../actions/Account/confirmAccount';
 import Spinner from '../../common/indicators/Spinner';
 import Text from '../../common/typography/Text';
 
-// Translation data for this component
-import intlData from './RegisterConfirm.intl';
-
 /**
  * Component
  */
 class RegisterConfirm extends React.Component {
 
     static contextTypes = {
-        executeAction: React.PropTypes.func.isRequired,
-        getStore: React.PropTypes.func.isRequired,
-        router: React.PropTypes.func.isRequired
+        executeAction: PropTypes.func.isRequired,
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Initial State ***//
@@ -40,21 +37,21 @@ class RegisterConfirm extends React.Component {
         userError: this.context.getStore(AccountStore).getError(),
         errorMessage: undefined
     };
-    
+
     //*** Component Lifecycle ***//
-    
+
     componentDidMount() {
-        
+
         // Component styles
         require('./RegisterConfirm.scss');
 
         // a) User is logged in
         if (this.state.user) {
-            this.setState({errorMessage: this.context.getStore(IntlStore).getMessage(intlData, 'logoutFirst')});
+            this.setState({errorMessage: this.context.intl.formatMessage({id: 'logoutFirst'})});
         }
         // b) Trigger account confirmation using provided token
         else {
-            this.context.executeAction(confirmAccount, {token: this.props.params.token});
+            this.context.executeAction(confirmAccount, {token: this.props.match.params.token});
         }
     }
 
@@ -67,7 +64,7 @@ class RegisterConfirm extends React.Component {
 
         // Check for successful login
         if (!this.state.user && nextProps._user) {
-            this.context.router.transitionTo('account', {locale: this.context.getStore(IntlStore).getCurrentLocale()});
+            this.props.history.push(`/${this.context.intl.locale}/account`);
         }
 
         // Update state
@@ -83,7 +80,6 @@ class RegisterConfirm extends React.Component {
     //*** Template ***//
 
     render() {
-        let intlStore = this.context.getStore(IntlStore);
         return (
             <div className="register-confirm">
                 <div className="register-confirm__message">
@@ -95,15 +91,11 @@ class RegisterConfirm extends React.Component {
                         <div>
                             {this.state.userLoading ?
                                 <Text>
-                                    <FormattedMessage
-                                        message={intlStore.getMessage(intlData, 'loggingIn')}
-                                        locales={intlStore.getCurrentLocale()} />...
+                                    <FormattedMessage id="loggingIn" />...
                                 </Text>
                                 :
                                 <Text>
-                                    <FormattedMessage
-                                        message={intlStore.getMessage(intlData, 'confirmingAccount')}
-                                        locales={intlStore.getCurrentLocale()} />...
+                                    <FormattedMessage id="confirmingAccount" />...
                                 </Text>
                             }
                         </div>

@@ -3,9 +3,11 @@
  */
 import React from 'react';
 import async from 'async';
+import queryString from 'query-string';
 import connectToStores from 'fluxible-addons-react/connectToStores';
-import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import {Link} from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 import config from '../../../config';
 import {slugify} from '../../../utils/strings';
@@ -36,14 +38,15 @@ import intlData from './ArticlesListingPage.intl';
 class ArticlesListingPage extends React.Component {
 
     static contextTypes = {
-        executeAction: React.PropTypes.func.isRequired,
-        getStore: React.PropTypes.func.isRequired
+        executeAction: PropTypes.func.isRequired,
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Required Data ***//
 
     static fetchData = function (context, params, query, done) {
-        async.parallel([
+        return async.parallel([
             function (callback) {
                 context.executeAction(fetchContents, {type: 'article', collections: query.collections}, callback);
             },
@@ -61,7 +64,7 @@ class ArticlesListingPage extends React.Component {
 
     static pageTitleAndSnippets = function (context, params, query) {
         return {
-            title: context.getStore(IntlStore).getMessage(intlData, 'pageTitle')
+            title: `${context.getStore(IntlStore).getMessage(intlData, 'title')} - ${config.app.title[context.getStore(IntlStore).getCurrentLocale()]}`
         }
     };
 
@@ -76,11 +79,11 @@ class ArticlesListingPage extends React.Component {
         productSuggestions: this.context.getStore(ProductSuggestionsStore).getProducts(),
         productSuggestionsLoading: this.context.getStore(ProductSuggestionsStore).isLoading()
     };
-    
+
     //*** Component Lifecycle ***//
-    
+
     componentDidMount() {
-        
+
         // Component styles
         require('./ArticlesListingPage.scss');
     }
@@ -98,22 +101,22 @@ class ArticlesListingPage extends React.Component {
     }
 
     //*** Template ***//
-    
+
     render() {
 
         //
         // Helper methods & variables
         //
-        let intlStore = this.context.getStore(IntlStore);
-        let routeParams = {locale: intlStore.getCurrentLocale()}; // Base route params
+        let locale = this.context.intl.locale;
+        let query = queryString.parse(this.props.location.search);
 
-        var filters = [
+        let filters = [
             {
-                name: {en: 'Categories', pt: 'Categorias'},
+                name: this.context.intl.formatMessage({id: 'categories'}),
                 collections: this.state.categories
             },
             {
-                name: {en: 'Collections', pt: 'Colecções'},
+                name: this.context.intl.formatMessage({id: 'collections'}),
                 collections: this.state.collections
             }
         ];
@@ -128,31 +131,25 @@ class ArticlesListingPage extends React.Component {
                         <Heading size="large">
                             <i className="fa fa-file-text-o" aria-hidden="true" />
                             &nbsp;
-                            <FormattedMessage 
-                                message={intlStore.getMessage(intlData, 'title')}
-                                locales={intlStore.getCurrentLocale()}
-                                appTitle={config.app.title} />
+                            <FormattedMessage id="articlesListingHeader"
+                                values={{ 'appTitle': config.app.brand }} />
                         </Heading>
                     </div>
                     <div className="article-listing-page__headline">
                         <Text>
-                            <FormattedMessage
-                                message={intlStore.getMessage(intlData, 'headline')}
-                                locales={intlStore.getCurrentLocale()} />
+                            <FormattedMessage id="articlesHeadline" />
                         </Text>
                     </div>
                 </div>
                 <div className="article-listing-page__body">
                     <div className="article-listing-page__left-column">
-                        {this.props.query.collections ?
+                        {query.collections ?
                             <div className="article-listing-page__view-all">
-                                <Link to="articles" params={routeParams}>
+                                <Link to={`/${locale}/articles`}>
                                     <Text>
                                         <i className="fa fa-chevron-left" aria-hidden="true" />
                                         &nbsp;
-                                        <FormattedMessage
-                                            message={intlStore.getMessage(intlData, 'viewAllArticles')}
-                                            locales={intlStore.getCurrentLocale()} />
+                                        <FormattedMessage id="viewAllArticles" />
                                     </Text>
                                 </Link>
                             </div>
@@ -162,24 +159,19 @@ class ArticlesListingPage extends React.Component {
                         {filters.map((item, idx) => {
                             let links = item.collections.map((col) => {
                                 return {
-                                    name: intlStore.getMessage(col.name),
-                                    to: 'articles',
-                                    params: {
-                                        locale: intlStore.getCurrentLocale()
-                                    },
+                                    name: col.name,
+                                    to: `/${locale}/articles`,
                                     query: {
                                         collections: col.id
                                     },
-                                    selected: this.props.query.collections ? this.props.query.collections.split(',').indexOf(col.id) !== -1 : false
+                                    selected: query.collections ? query.collections.split(',').indexOf(col.id) !== -1 : false
                                 };
                             });
                             if (links.length > 0) {
                                 return (
                                     <div key={idx} className="article-listing-page__filter">
                                         <TreeMenu links={links}>
-                                            <FormattedMessage
-                                                message={intlStore.getMessage(item.name)}
-                                                locales={intlStore.getCurrentLocale()} />
+                                            {item.name[locale]}
                                         </TreeMenu>
                                     </div>
                                 );
@@ -190,14 +182,9 @@ class ArticlesListingPage extends React.Component {
                         {this.state.contents.length > 0 ?
                             <div className="article-listing-page__list">
                                 {this.state.contents.filter(c => c.type === 'article').map((content, idx) => {
-                                    let articleRouteParams = Object.assign({
-                                        contentId: content.id,
-                                        contentSlug: slugify(intlStore.getMessage(content.name))
-                                    }, routeParams);
                                     return (
-                                        <div className="article-listing-page__item">
-                                            <Link className="article-listing-page__item-link" to="article-slug"
-                                                  params={articleRouteParams}>
+                                        <div key={idx} className="article-listing-page__item">
+                                            <Link className="article-listing-page__item-link" to={`/${locale}/articles/${content.id}/${slugify(content.name[locale])}`}>
                                                 <ArticleSummary key={idx} content={content} hideLink={true} />
                                             </Link>
                                         </div>
@@ -207,9 +194,7 @@ class ArticlesListingPage extends React.Component {
                             :
                             <div className="article-listing-page__list article-listing-page__noResults">
                                 <Text>
-                                    <FormattedMessage 
-                                        message={intlStore.getMessage(intlData, 'noResults')}
-                                        locales={intlStore.getCurrentLocale()} />!
+                                    <FormattedMessage id="noResults" />!
                                 </Text>
                             </div>
                         }
@@ -218,8 +203,7 @@ class ArticlesListingPage extends React.Component {
                         <div className="article-listing-page__newsletter">
                             <div className="article-listing-page__newsletter-cta">
                                 <Heading size="small">
-                                    <FormattedMessage message={intlStore.getMessage(intlData, 'newsletterCta')}
-                                                      locales={intlStore.getCurrentLocale()} />
+                                    <FormattedMessage id="newsletterCta" />
                                 </Heading>
                             </div>
                             <NewsletterSubscription />
@@ -227,8 +211,7 @@ class ArticlesListingPage extends React.Component {
                         {this.state.productSuggestions && this.state.productSuggestions.length > 0 ?
                             <div className="article-listing-page__product-suggestions">
                                 <ProductSuggestions products={this.state.productSuggestions} loading={this.state.productSuggestionsLoading}>
-                                    <FormattedMessage message={intlStore.getMessage(intlData, 'suggestedProducts')}
-                                                      locales={intlStore.getCurrentLocale()} />
+                                    <FormattedMessage id="suggestedProducts" />
                                 </ProductSuggestions>
                             </div>
                             :

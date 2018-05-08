@@ -2,13 +2,11 @@
  * Imports
  */
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import {Link} from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 import {slugify} from '../../../utils/strings';
-
-// Flux
-import IntlStore from '../../../stores/Application/IntlStore';
 
 // Required components
 import Text from '../typography/Text';
@@ -21,7 +19,8 @@ import TreeMenu from './TreeMenu';
 class CollectionTreeMenu extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Initial State ***//
@@ -29,11 +28,11 @@ class CollectionTreeMenu extends React.Component {
     state = {
         openedDrawer: undefined
     };
-    
+
     //*** Component Lifecycle ***//
-    
+
     componentDidMount() {
-        
+
         // Component styles
         require('./CollectionTreeMenu.scss');
     }
@@ -47,17 +46,15 @@ class CollectionTreeMenu extends React.Component {
     handleMouseLeave = () => {
         this.setState({openedDrawer: null});
     };
-    
+
     //*** Template ***//
-    
+
     render() {
 
         //
         // Helper methods & variables
         //
-        let intlStore = this.context.getStore(IntlStore);
-        let routeParams = {locale: this.context.getStore(IntlStore).getCurrentLocale()}; // Base route params
-
+        let locale = this.context.intl.locale;
         //
         // Return
         //
@@ -70,18 +67,12 @@ class CollectionTreeMenu extends React.Component {
                             if (this.state.openedDrawer && this.state.openedDrawer.id === collection.id) {
                                 className += ' collection-tree-menu__root-item--selected';
                             }
-                            let params = Object.assign({
-                                collectionId: collection.id,
-                                collectionSlug: slugify(intlStore.getMessage(collection.name))
-                            }, routeParams);
                             return (
                                 <li key={idx} className={className}
                                     onMouseEnter={this.handleMouseEnter.bind(null, collection)}>
                                     <Text className="collection-tree-menu__root-item-label" size="medium">
-                                        <Link to='collection-slug' params={params}>
-                                            <FormattedMessage
-                                                message={intlStore.getMessage(collection.name)}
-                                                locales={intlStore.getCurrentLocale()} />
+                                        <Link to={`/${locale}/collections/${collection.id}/${slugify(collection.name[locale])}`}>
+                                            {collection.name[locale]}
                                         </Link>
                                     </Text>
                                 </li>
@@ -93,12 +84,8 @@ class CollectionTreeMenu extends React.Component {
                             <div className="collection-tree-menu__drawer-block">
                                 <TreeMenu links={this.state.openedDrawer.children.map(function (collection) {
                                     return {
-                                        name: intlStore.getMessage(collection.name),
-                                        to: 'collection-slug',
-                                        params: Object.assign({
-                                            collectionId: collection.id,
-                                            collectionSlug: slugify(intlStore.getMessage(collection.name))
-                                        }, routeParams)
+                                        name: collection.name[locale],
+                                        to: `/${locale}/collections/${collection.id}/${slugify(collection.name[locale])}`,
                                     };
                                 })} />
                             </div>

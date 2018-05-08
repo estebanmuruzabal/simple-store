@@ -4,6 +4,7 @@
 import React from 'react';
 import connectToStores from 'fluxible-addons-react/connectToStores';
 import {FormattedMessage} from 'react-intl';
+import PropTypes from 'prop-types';
 
 import {move as arrayMove} from '../../../../utils/arrays';
 
@@ -17,17 +18,14 @@ import bulkCollectionsUpdate from '../../../../actions/Admin/bulkCollectionsUpda
 import Button from '../../../common/buttons/Button';
 import DirectionButton from '../../../common/buttons/DirectionButton';
 
-// Translation data for this component
-import intlData from './AdminMainNavigation.intl';
-
 /**
  * Component
  */
 class AdminMainNavigation extends React.Component {
 
     static contextTypes = {
-        executeAction: React.PropTypes.func.isRequired,
-        getStore: React.PropTypes.func.isRequired
+        executeAction: PropTypes.func.isRequired,
+        getStore: PropTypes.func.isRequired
     };
 
     //*** Initial State ***//
@@ -101,9 +99,7 @@ class AdminMainNavigation extends React.Component {
                     <Button className="admin-main-navigation__update-button" type="primary"
                             onClick={this.handleUpdateClick}
                             loading={this.state.loading}>
-                        <FormattedMessage
-                            message={intlStore.getMessage(intlData, 'update')}
-                            locales={intlStore.getCurrentLocale()} />
+                        <FormattedMessage id="updateButton" />
                     </Button>
                 </div>
             </div>

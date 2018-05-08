@@ -4,15 +4,15 @@
 import React from 'react';
 import async from 'async';
 import connectToStores from 'fluxible-addons-react/connectToStores';
-import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import {Link} from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 import {slugify} from '../../../utils/strings';
 
 // Flux
 import CollectionsStore from '../../../stores/Collections/CollectionsStore';
 import ContentsListStore from '../../../stores/Contents/ContentsListStore';
-import IntlStore from '../../../stores/Application/IntlStore';
 import ProductsHomepageStore from '../../../stores/Products/ProductsHomepageStore';
 
 import fetchContents from '../../../actions/Contents/fetchContents';
@@ -25,22 +25,20 @@ import ProductList from '../../common/products/ProductList';
 
 import HomepageFeaturedCollection from './HomepageFeaturedCollection';
 
-// Translation data for this component
-import intlData from './Homepage.intl';
-
 /**
  * Component.
  */
 class Homepage extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Required Data ***//
 
     static fetchData = function (context, params, query, done) {
-        async.parallel([
+        return async.parallel([
             function (callback) {
                 context.executeAction(fetchContents, {tags: 'homepage'}, callback);
             },
@@ -58,7 +56,8 @@ class Homepage extends React.Component {
         collections: this.context.getStore(CollectionsStore).getOrderedCollections(['homepageFeatured'], true, 'homepageFeaturedOrder'),
         featuredCategories: this.context.getStore(CollectionsStore).getCollections(['category', 'homepage']),
         featuredCollections: this.context.getStore(CollectionsStore).getCollections(['collection', 'homepage']),
-        featuredProducts: this.context.getStore(ProductsHomepageStore).getProducts()
+        featuredProducts: this.context.getStore(ProductsHomepageStore).getProducts(),
+        hideCTA: true,
     };
 
     //*** Component Lifecycle ***//
@@ -76,7 +75,7 @@ class Homepage extends React.Component {
             collections: nextProps._collections,
             featuredProducts: nextProps._featuredProducts,
             featuredCategories: nextProps._featuredCategories,
-            featuredCollections: nextProps._featuredCollections
+            featuredCollections: nextProps._featuredCollections,
         });
     }
 
@@ -88,10 +87,7 @@ class Homepage extends React.Component {
         // Helper methods & variables
         //
 
-        let intlStore = this.context.getStore(IntlStore);
-
-        // Base route params
-        let routeParams = {locale: this.context.getStore(IntlStore).getCurrentLocale()};
+        let locale = this.context.intl.locale;
 
         // Featured Collections
         let featuredCollections = [null, null, null, null];
@@ -99,19 +95,15 @@ class Homepage extends React.Component {
             if (this.state.collections[i]) {
                 let collection = this.state.collections[i];
                 featuredCollections[i] = {
-                    name: collection.name,
+                    name: collection.name[locale],
                     link: {
-                        to: 'collection-slug',
-                        params: Object.assign({
-                            collectionId: collection.id,
-                            collectionSlug: slugify(intlStore.getMessage(collection.name))
-                        }, routeParams)
+                        to: `/${locale}/collections/${collection.id}/${slugify(collection.name[locale])}`,
                     }
                 };
                 if (collection.images && collection.images.length > 0) {
                     featuredCollections[i].img = {
                         src: `//${collection.images[0].url}`,
-                        alt: intlStore.getMessage(collection.name)
+                        alt: collection.name[locale]
                     };
                 }
             }
@@ -122,11 +114,11 @@ class Homepage extends React.Component {
             if (this.state.featuredCategories.length > 0 || this.state.featuredCollections.length > 0) {
                 return [
                     {
-                        name: {en: 'Categories', pt: 'Categorias'},
+                        name: this.context.intl.formatMessage({id: 'categories'}),
                         collections: this.state.featuredCategories
                     },
                     {
-                        name: {en: 'Collections', pt: 'Colecções'},
+                        name: this.context.intl.formatMessage({id: 'collections'}),
                         collections: this.state.featuredCollections
                     }
                 ];
@@ -135,9 +127,7 @@ class Homepage extends React.Component {
 
         // Fetaured Products Title Component
         let featuredProductsTitle = function() {
-            return <FormattedMessage
-                       message={intlStore.getMessage(intlData, 'productsList')}
-                       locales={intlStore.getCurrentLocale()} />;
+            return <FormattedMessage id="productsList" />;
         };
 
         //
@@ -145,41 +135,40 @@ class Homepage extends React.Component {
         //
         return (
             <div className="homepage">
-                <div className="homepage__cta">
-                    <div className="homepage__featured">
-                        <div className="homepage__featured-block">
-                            <HomepageFeaturedCollection feature={featuredCollections[0]} />
-                            <HomepageFeaturedCollection feature={featuredCollections[1]} />
+                {!this.state.hideCTA ?
+                    <div className="homepage__cta">
+                        <div className="homepage__featured">
+                            <div className="homepage__featured-block">
+                                <HomepageFeaturedCollection feature={featuredCollections[0]} />
+                                <HomepageFeaturedCollection feature={featuredCollections[1]} />
+                            </div>
+                            <div className="homepage__featured-block">
+                                <HomepageFeaturedCollection feature={featuredCollections[2]} />
+                                <HomepageFeaturedCollection feature={featuredCollections[3]} />
+                            </div>
                         </div>
-                        <div className="homepage__featured-block">
-                            <HomepageFeaturedCollection feature={featuredCollections[2]} />
-                            <HomepageFeaturedCollection feature={featuredCollections[3]} />
-                        </div>
-                    </div>
 
-                    <div className="homepage__banners">
-                        <Carousel images={this.state.banners.filter(function (banner) {
-                            return banner.body && banner.body.image;
-                        }).map(function (banner) {
-                            return {
-                                src: `//${banner.body.image.url}`,
-                                link: banner.body.link
-                            };
-                        })} />
+                        <div className="homepage__banners">
+                            <Carousel images={this.state.banners.filter(function (banner) {
+                                return banner.body && banner.body.image;
+                            }).map(function (banner) {
+                                return {
+                                    src: `//${banner.body.image.url}`,
+                                    link: banner.body.link
+                                };
+                            })} />
+                        </div>
                     </div>
-                </div>
+                    :
+                    null
+                }
 
                 {this.state.articles.length > 0 ?
                     <div className="homepage__articles">
                         {this.state.articles.map((content, idx) => {
-                            let articleRouteParams = Object.assign({
-                                contentId: content.id,
-                                contentSlug: slugify(intlStore.getMessage(content.name))
-                            }, routeParams);
                             return (
                                 <div key={idx} className="homepage__article-item">
-                                    <Link className="homepage__article-link" to="article-slug"
-                                          params={articleRouteParams}>
+                                    <Link className="homepage__article-link" to={`/${locale}/articles/${content.id}/${slugify(content.name[locale])}`} >
                                         <ArticleSummary key={idx} size="small" content={content} hideLink={true} />
                                     </Link>
                                 </div>
@@ -193,6 +182,7 @@ class Homepage extends React.Component {
                 <div className="homepage__products">
                     <ProductList title={featuredProductsTitle()}
                                  filters={productFilters()}
+                                 location={this.props.location}
                                  products={this.state.featuredProducts} />
                 </div>
             </div>

@@ -94,6 +94,18 @@ class OrdersAPI {
             this._wrapAndRequest(request, resolve, reject);
         });
     }
+
+    /**
+     *
+     * @param orderId
+     * @param shippingDetails - the new shippingDetails
+     */
+    updateShippingDetails(orderId, shippingDetails) {
+        return new Promise((resolve, reject) => {
+            let request = superagent.patch(`${this.baseUrl}/orders/${orderId}`).send({shippingDetails});
+            this._wrapAndRequest(request, resolve, reject);
+        });
+    }
 }
 
 /**

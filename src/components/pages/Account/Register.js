@@ -3,8 +3,11 @@
  */
 import React from 'react';
 import connectToStores from 'fluxible-addons-react/connectToStores';
-import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import { Link } from 'react-router-dom';
+import PropTypes from 'prop-types';
+
+import config from '../../../config';
 
 // Flux
 import AccountStore from '../../../stores/Account/AccountStore';
@@ -29,16 +32,16 @@ import intlData from './Register.intl';
 class Register extends React.Component {
 
     static contextTypes = {
-        executeAction: React.PropTypes.func.isRequired,
-        getStore: React.PropTypes.func.isRequired,
-        router: React.PropTypes.func.isRequired
+        executeAction: PropTypes.func.isRequired,
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Page Title and Snippets ***//
 
     static pageTitleAndSnippets = function (context) {
         return {
-            title: context.getStore(IntlStore).getMessage(intlData, 'title')
+            title: `${context.getStore(IntlStore).getMessage(intlData, 'title')} - ${config.app.title[context.getStore(IntlStore).getCurrentLocale()]}`
         }
     };
 
@@ -92,25 +95,22 @@ class Register extends React.Component {
     };
 
     handleSubmitClick = () => {
-
-        let intlStore = this.context.getStore(IntlStore);
-
         this.setState({fieldErrors: {}});
         let fieldErrors = {};
         if (!this.state.name) {
-            fieldErrors.name = intlStore.getMessage(intlData, 'fieldRequired');
+            fieldErrors.name = this.context.intl.formatMessage({id: 'fieldRequired'});
         }
         if (!this.state.email) {
-            fieldErrors.email = intlStore.getMessage(intlData, 'fieldRequired');
+            fieldErrors.email = this.context.intl.formatMessage({id: 'fieldRequired'});
         }
         if (!this.state.password) {
-            fieldErrors.password = intlStore.getMessage(intlData, 'fieldRequired');
+            fieldErrors.password = this.context.intl.formatMessage({id: 'fieldRequired'});
         }
         if (!this.state.passwordConfirm) {
-            fieldErrors.passwordConfirm = intlStore.getMessage(intlData, 'fieldRequired');
+            fieldErrors.passwordConfirm = this.context.intl.formatMessage({id: 'fieldRequired'});
         }
         if (this.state.password && this.state.passwordConfirm && this.state.password != this.state.passwordConfirm) {
-            fieldErrors.passwordConfirm = intlStore.getMessage(intlData, 'passwordMismatch');
+            fieldErrors.passwordConfirm = this.context.intl.formatMessage({id: 'passwordMismatch'});
         }
         this.setState({fieldErrors: fieldErrors});
 
@@ -124,31 +124,25 @@ class Register extends React.Component {
     };
 
     handleModalContinueClick = () => {
-        this.context.router.transitionTo('homepage', {locale: this.context.getStore(IntlStore).getCurrentLocale()});
+        this.props.history.push(`/${this.context.intl.locale}`);
     };
 
     //*** Template ***//
 
     render() {
 
-        let intlStore = this.context.getStore(IntlStore);
-
         let successModal = () => {
             if (this.state.showSuccessModal) {
                 return (
-                    <Modal title={intlStore.getMessage(intlData, 'successModalTitle')}>
+                    <Modal title={this.context.intl.formatMessage({id: 'registerSuccessModalTitle'})}>
                         <div className="register__modal-body">
                             <Text size="medium">
-                                <FormattedMessage
-                                    message={intlStore.getMessage(intlData, 'successModalBody')}
-                                    locales={intlStore.getCurrentLocale()} />
+                                <FormattedMessage id="registerSuccessModalBody" />
                             </Text>
                         </div>
                         <div className="register__modal-footer">
                             <Button type="primary" onClick={this.handleModalContinueClick}>
-                                <FormattedMessage
-                                    message={intlStore.getMessage(intlData, 'successModalContinue')}
-                                    locales={intlStore.getCurrentLocale()} />
+                                <FormattedMessage id="registerSuccessModalContinue" />
                             </Button>
                         </div>
                     </Modal>
@@ -163,43 +157,39 @@ class Register extends React.Component {
                 <div className="register__container">
                     <div className="register__header">
                         <Heading>
-                            <FormattedMessage
-                                message={intlStore.getMessage(intlData, 'title')}
-                                locales={intlStore.getCurrentLocale()} />
+                            <FormattedMessage id="registerHeader" />
                         </Heading>
                     </div>
                     <div className="register__form">
                         <div className="register__form-item">
-                            <InputField label={intlStore.getMessage(intlData, 'name')}
+                            <InputField label={this.context.intl.formatMessage({id: 'fullName'})}
                                         onChange={this.handleFieldChange.bind(null, 'name')}
                                         onEnterPress={this.handleSubmitClick}
                                         error={this.state.fieldErrors['name']} />
                         </div>
                         <div className="register__form-item">
-                            <InputField label={intlStore.getMessage(intlData, 'email')}
+                            <InputField label={this.context.intl.formatMessage({id: 'email'})}
                                         onChange={this.handleFieldChange.bind(null, 'email')}
                                         onEnterPress={this.handleSubmitClick}
                                         error={this.state.fieldErrors['email']} />
                         </div>
                         <div className="register__form-item">
                             <InputField type="password"
-                                        label={intlStore.getMessage(intlData, 'password')}
+                                        label={this.context.intl.formatMessage({id: 'password'})}
                                         onChange={this.handleFieldChange.bind(null, 'password')}
                                         onEnterPress={this.handleSubmitClick}
                                         error={this.state.fieldErrors['password']} />
                         </div>
                         <div className="register__form-item">
                             <InputField type="password"
-                                        label={intlStore.getMessage(intlData, 'passwordConfirm')}
+                                        label={this.context.intl.formatMessage({id: 'passwordConfirm'})}
                                         onChange={this.handleFieldChange.bind(null, 'passwordConfirm')}
                                         onEnterPress={this.handleSubmitClick}
                                         error={this.state.fieldErrors['passwordConfirm']} />
                         </div>
                         <div className="register__form-actions">
                             <Button type="primary" onClick={this.handleSubmitClick} disabled={this.state.loading}>
-                                <FormattedMessage
-                                    message={intlStore.getMessage(intlData, 'submit')}
-                                    locales={intlStore.getCurrentLocale()} />
+                                <FormattedMessage id="registerButton" />
                             </Button>
                         </div>
                     </div>

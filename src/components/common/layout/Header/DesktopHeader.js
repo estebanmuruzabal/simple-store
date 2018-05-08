@@ -3,14 +3,14 @@
  */
 import React from 'react';
 import connectToStores from 'fluxible-addons-react/connectToStores';
-import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import { Link } from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 // Flux
 import AccountStore from '../../../../stores/Account/AccountStore';
 import CartStore from '../../../../stores/Cart/CartStore';
 import DrawerStore from '../../../../stores/Application/DrawerStore';
-import IntlStore from '../../../../stores/Application/IntlStore';
 import triggerDrawer from '../../../../actions/Application/triggerDrawer';
 
 // Required components
@@ -19,18 +19,15 @@ import CollectionTreeMenu from '../../navigation/CollectionTreeMenu';
 import MainNavigation from '../../navigation/MainNavigation';
 import Text from '../../typography/Text';
 
-// Translation data for this component
-import intlData from './DesktopHeader.intl';
-
 /**
  * Component
  */
 class DesktopHeader extends React.Component {
 
     static contextTypes = {
-        executeAction: React.PropTypes.func.isRequired,
-        getStore: React.PropTypes.func.isRequired,
-        router: React.PropTypes.func.isRequired
+        executeAction: PropTypes.func.isRequired,
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Initial State ***//
@@ -45,7 +42,6 @@ class DesktopHeader extends React.Component {
     //*** Component Lifecycle ***//
 
     componentDidMount() {
-
         // Component styles
         require('./DesktopHeader.scss');
     }
@@ -68,18 +64,15 @@ class DesktopHeader extends React.Component {
 
     render() {
 
-        // Helper variables
-        let intlStore = this.context.getStore(IntlStore);
-        let routeParams = {locale: this.context.getStore(IntlStore).getCurrentLocale()};
-
         // Return
         return (
             <div className="desktop-header">
                 <div className="desktop-header__container">
                     <div className="desktop-header__row">
                         <div className="desktop-header__container-left-column">
-                            <Link className="desktop-header__logo-link" to='homepage' params={routeParams}>
-                                <div className="desktop-header__logo"></div>
+                            <Link className="desktop-header__logo-link" to={`/${this.context.intl.locale}`}>
+                                <div className="desktop-header__logo">
+                                </div>
                             </Link>
                             <div className="desktop-header__navigation">
                                 <MainNavigation links={this.props.collections} />
@@ -89,28 +82,22 @@ class DesktopHeader extends React.Component {
                             {this.state.user ?
                                 <div className="desktop-header__account">
                                     <div className="desktop-header__logout-button">
-                                        <Link to='logout' params={routeParams}>
+                                        <Link to={`/${this.context.intl.locale}/logout`}>
                                             <Text size="small">
-                                                <FormattedMessage
-                                                    message={intlStore.getMessage(intlData, 'logout')}
-                                                    locales={intlStore.getCurrentLocale()} />
+                                                <FormattedMessage id="logoutHeader" />
                                             </Text>
                                         </Link>
                                     </div>
                                     <div className="desktop-header__account-button">
-                                        <Link to='account' params={routeParams}>
+                                        <Link to={`/${this.context.intl.locale}/account`}>
                                             <div>
                                                 <Text size="small">
-                                                    <FormattedMessage
-                                                        message={intlStore.getMessage(intlData, 'hi')}
-                                                        locales={intlStore.getCurrentLocale()} />, {this.state.user.name.split(' ')[0]}
+                                                    <FormattedMessage id="hi" />, {this.state.user.name.split(' ')[0]}
                                                 </Text>
                                             </div>
                                             <div>
                                                 <Text size="small" weight="bold">
-                                                    <FormattedMessage
-                                                        message={intlStore.getMessage(intlData, 'myAccount')}
-                                                        locales={intlStore.getCurrentLocale()} />
+                                                    <FormattedMessage id="myAccount" />
                                                 </Text>
                                             </div>
                                         </Link>
@@ -119,20 +106,16 @@ class DesktopHeader extends React.Component {
                                 :
                                 <div className="desktop-header__account">
                                     <div className="desktop-header__register-button">
-                                        <Link to='register' params={routeParams}>
+                                        <Link to={`/${this.context.intl.locale}/register`}>
                                             <Text size="medium">
-                                                <FormattedMessage
-                                                    message={intlStore.getMessage(intlData, 'register')}
-                                                    locales={intlStore.getCurrentLocale()} />
+                                                <FormattedMessage id="registerHeader" />
                                             </Text>
                                         </Link>
                                     </div>
                                     <div className="desktop-header__login-button">
-                                        <Link to='login' params={routeParams}>
+                                        <Link to={`/${this.context.intl.locale}/login`} >
                                             <Text size="medium">
-                                                <FormattedMessage
-                                                    message={intlStore.getMessage(intlData, 'login')}
-                                                    locales={intlStore.getCurrentLocale()} />
+                                                <FormattedMessage id="loginHeader" />
                                             </Text>
                                         </Link>
                                     </div>
@@ -163,7 +146,7 @@ DesktopHeader = connectToStores(DesktopHeader, [AccountStore, CartStore, DrawerS
     return {
         _cartTotalItems: context.getStore(CartStore).getTotalItems(),
         _user: context.getStore(AccountStore).getAccountDetails(),
-        _openedDrawer: context.getStore(DrawerStore).getOpenedDrawer()
+        _openedDrawer: context.getStore(DrawerStore).getOpenedDrawer(),
     };
 });
 

@@ -3,11 +3,9 @@
  */
 import React from 'react';
 import moment from 'moment';
-import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router';
-
-// Flux
-import IntlStore from '../../../stores/Application/IntlStore';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import {Link} from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 // Required components
 import Breakpoint from '../../core/Breakpoint';
@@ -19,44 +17,38 @@ import Spinner from '../../common/indicators/Spinner';
 import Table from '../../common/tables/Table';
 import Text from '../../common/typography/Text';
 
-// Translation data for this component
-import intlData from './AccountOrders.intl';
-
 /**
  * Component
  */
 class AccountOrders extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
-    
+
     //*** Component Lifecycle ***//
-    
+
     componentDidMount() {
-        
+
         // Component styles
         require('./AccountOrders.scss');
     }
-    
+
     //*** Template ***//
-    
+
     render() {
 
         //
         // Helper methods & variables
         //
-        let intlStore = this.context.getStore(IntlStore);
-        let routeParams = {locale: this.context.getStore(IntlStore).getCurrentLocale()}; // Base route params
+        let locale = this.context.intl.locale;
+
 
         // Order list table headings
         let headings = [
-            <FormattedMessage
-                message={intlStore.getMessage(intlData, 'dateHeading')}
-                locales={intlStore.getCurrentLocale()} />,
-            <FormattedMessage
-                message={intlStore.getMessage(intlData, 'statusHeading')}
-                locales={intlStore.getCurrentLocale()} />,
+            <FormattedMessage id="dateHeading" />,
+            <FormattedMessage id="statusHeading" />,
             ''
         ];
 
@@ -68,8 +60,10 @@ class AccountOrders extends React.Component {
                     <Text size="small">{moment(order.createdAt).format('YYYY/MM/DD HH:mm:ss')}</Text>,
                     <OrderStatus status={order.status} />,
                     <span className="account-orders__link">
-                        <Link to="account-order-details" params={Object.assign({orderId: order.id}, routeParams)}>
-                            <Text size="small">Ver Detalhes</Text>
+                        <Link to={`/${locale}/account/orders/${order.id}`} >
+                            <Text size="small">
+                                <FormattedMessage id="viewDetails" />
+                            </Text>
                         </Link>
                     </span>
                 ]
@@ -83,9 +77,7 @@ class AccountOrders extends React.Component {
             <div className="account-orders">
                 <div className="account-orders__title">
                     <Heading size="medium">
-                        <FormattedMessage
-                            message={intlStore.getMessage(intlData, 'title')}
-                            locales={intlStore.getCurrentLocale()} />
+                        <FormattedMessage id="accountOrdersHeader" />
                     </Heading>
                 </div>
                 {this.props.loading ?
@@ -97,8 +89,7 @@ class AccountOrders extends React.Component {
                         {!this.props.lastOrder ?
                             <div className="account-orders__no-order">
                                 <Text size="small">
-                                    <FormattedMessage message={intlStore.getMessage(intlData, 'noOrders')}
-                                                      locales={intlStore.getCurrentLocale()} />
+                                    <FormattedMessage id="noOrders" />
                                 </Text>
                             </div>
                             :
@@ -116,10 +107,9 @@ class AccountOrders extends React.Component {
                                 <OrderSummary checkout={this.props.lastOrder.checkout} />
                                 <div className="account-orders__last-order-actions">
                                     <div className="account-orders__last-order-action-button">
-                                        <Link to="account-order-details" params={Object.assign({orderId: this.props.lastOrder.id}, routeParams)}>
+                                        <Link to={`/${locale}/account/orders/${this.props.lastOrder.id}`} >
                                             <Button type="default" fontSize="small">
-                                                <FormattedMessage message={intlStore.getMessage(intlData, 'viewDetails')}
-                                                                  locales={intlStore.getCurrentLocale()} />
+                                                <FormattedMessage id="viewDetails" />
                                             </Button>
                                         </Link>
                                     </div>
@@ -130,15 +120,14 @@ class AccountOrders extends React.Component {
                             <div className="account-orders__list">
                                 <div className="account-orders__list-title">
                                     <Heading size="small">
-                                        <FormattedMessage message={intlStore.getMessage(intlData, 'history')}
-                                                          locales={intlStore.getCurrentLocale()} />
+                                        <FormattedMessage id="history" />
                                     </Heading>
                                 </div>
                                 <div className="account-orders__list-content">
                                     <Breakpoint point="handhelds">
-                                        {rows.map(function (row) {
+                                        {rows.map(function (row, index) {
                                             return (
-                                                <div className="account-orders__list-item">
+                                                <div className="account-orders__list-item" key={index}>
                                                     <div className="account-orders__item-data">
                                                         {row.data[0]}
                                                     </div>
@@ -165,7 +154,7 @@ class AccountOrders extends React.Component {
                         }
                     </div>
                 }
-            </div>  
+            </div>
         );
     }
 }

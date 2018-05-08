@@ -2,12 +2,11 @@
  * Imports
  */
 import React from 'react';
-import {Link} from 'react-router';
+import { injectIntl, intlShape } from 'react-intl';
+import {Link} from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 import {slugify} from '../../../utils/strings';
-
-// Flux
-import IntlStore from '../../../stores/Application/IntlStore';
 
 // Required components
 import Heading from '../typography/Heading';
@@ -20,7 +19,8 @@ import Text from '../typography/Text';
 class ProductSuggestions extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Initial State ***//
@@ -49,8 +49,7 @@ class ProductSuggestions extends React.Component {
         //
         // Helper methods & variables
         //
-        let intlStore = this.context.getStore(IntlStore);
-        let routeParams = {locale: intlStore.getCurrentLocale()}; // Base route params
+        let locale = this.context.intl.locale;
 
         //
         // Return
@@ -69,20 +68,16 @@ class ProductSuggestions extends React.Component {
                     :
                     <div className="product-suggestions__list">
                         {this.props.products.map((product, idx) => {
-                            let params = Object.assign({
-                                productId: product.id,
-                                productSlug: slugify(intlStore.getMessage(product.name))
-                            }, routeParams);
                             let image = (product.images && product.images.length > 0) ? `//${product.images[0].url}` : this.state.placeholderImage;
                             return (
                                 <div key={idx} className="product-suggestions__item">
-                                    <Link to="product-slug" params={params}>
+                                    <Link to={`/${locale}/products/${product.id}/${slugify(product.name[locale])}`} >
                                         <div className="product-suggestions__item-image">
                                             <img src={image} />
                                         </div>
                                         <div className="product-suggestions__item-name">
                                             <Text size="small">
-                                                {intlStore.getMessage(product.name)}
+                                                {product.name[locale]}
                                             </Text>
                                         </div>
                                     </Link>

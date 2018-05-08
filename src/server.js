@@ -3,10 +3,17 @@
  */
 import Debug from 'debug';
 import Express from 'express';
+
+import expressStaticGzip from 'express-static-gzip';
+import cookieParser from 'cookie-parser';
+
 import React from 'react';
-import Router from 'react-router';
+import ReactDOMServer from 'react-dom/server';
+import { StaticRouter } from 'react-router-dom';
+import { matchRoutes, renderRoutes } from 'react-router-config';
 import Serialize from 'serialize-javascript';
-import {FluxibleComponent} from 'fluxible-addons-react';
+import { FluxibleComponent } from 'fluxible-addons-react';
+import { addLocaleData, IntlProvider } from 'react-intl';
 
 import fetchData from './utils/fetchData';
 import fetchPageTitleAndSnippets from './utils/fetchPageTitleAndSnippets';
@@ -15,12 +22,15 @@ import webpackStats from '../webpack/stats';
 
 // Flux
 import ApplicationStore from './stores/Application/ApplicationStore';
+import CartStore from './stores/Cart/CartStore';
 
 import clearRouteErrors from './actions/Application/clearRouteErrors';
 import fetchAllCollections from './actions/Collections/fetchAllCollections';
 import navigateAction from './actions/Application/navigate';
 import setLocale from './actions/Application/setLocale';
 import setMobileBreakpoint from './actions/Application/setMobileBreakpoint';
+import fetchAccountDetails from './actions/Account/fetchAccountDetails';
+import fetchOrCreateCart from './actions/Cart/fetchOrCreateCart';
 
 // Required components
 import BaseHtml from './components/core/BaseHtml';
@@ -28,11 +38,26 @@ import NotFound from './components/pages/NotFound/NotFound';
 import ServerError from './components/pages/ServerError/ServerError';
 
 // Initialize debugging utility
-let debug = Debug('nicistore');
+let debug = Debug('simple-store');
 
 // App fluxible wrapper, configurations, base html component and router action
 import app from './app';
+import DataLoader from './dataLoader';
 import config from './config';
+import routes from './routes';
+
+import uk from 'react-intl/locale-data/uk';
+import en from 'react-intl/locale-data/en';
+import ru from 'react-intl/locale-data/ru';
+
+addLocaleData([...uk, ...en, ...ru]);
+
+const messages = {};
+
+['uk', 'en', 'ru'].forEach((locale) => {
+    messages[locale] = require(`../static/localizations/${locale}.json`);
+});
+
 
 /**
  * Emitted when an exception bubbles all the way back to the event loop.
@@ -77,22 +102,39 @@ function dispatchSetMobileBreakpoint(context, isMobile) {
     });
 }
 
+function dispatchGetAccountDetails(context) {
+    return new Promise(function (resolve, reject) {
+        context.executeAction(fetchAccountDetails, {}, function () { resolve(); });
+    });
+}
+
+function dispatchFetchOrCreateCart(context) {
+    return new Promise(function (resolve, reject) {
+        context.executeAction(fetchOrCreateCart, {
+            cartId: context.getStore(CartStore).getCartId(),
+            cartAccessToken: context.getStore(CartStore).getCartAccessToken()
+        }, function () { resolve(); });
+    });
+}
+
 /**
  * Express server
  */
 let server = Express();
 
-//
-// a) Routes (remember, order is relevant!)
-//
+server.use(cookieParser());
 
 // 1) Serve static files
-server.use('/static', Express.static(__dirname + '/../static'));
 server.use('/robots.txt', Express.static(__dirname + '/../static/robots.txt'));
+server.use('/static', expressStaticGzip(__dirname + '/../static'));
 
 // 2) If requesting root URL, redirect to default locale
 server.get('/', function (req, res, next) {
     let defaultLocale = config.app.locale.default || 'en';
+    let userLocale = req.headers['accept-language'] ? req.headers['accept-language'].substring(0,2) : false;
+    if(config.app.locale.available.indexOf(userLocale) !== -1) {
+        defaultLocale = userLocale;
+    }
     debug(`Redirecting to default locale: ${defaultLocale}`);
     return res.redirect(301, `/${defaultLocale}`);
 });
@@ -102,7 +144,7 @@ server.use(async function (req, res, next) {
 
     try {
 
-        let context = app.createContext({config: config});
+        let context = app.createContext({req, res, config});
 
         // Locale:
         // - Fetch locale from URL
@@ -111,7 +153,7 @@ server.use(async function (req, res, next) {
         let locale = req.path.split('/')[1];
         if (!config.app.locale.available || config.app.locale.available.indexOf(locale) === -1) {
             let NotFoundComponent = React.createFactory(NotFound);
-            let html = React.renderToStaticMarkup(NotFoundComponent());
+            let html = ReactDOMServer.renderToStaticMarkup(NotFoundComponent());
             return res.status(404).send(html);
         }
         await dispatchSetLocale(context, locale);
@@ -129,78 +171,88 @@ server.use(async function (req, res, next) {
         // it with every other route change.
         await dispatchFetchAllCollections(context);
 
+        // When first loading the app on the client, trigger fetching of user account
+        // details before proceding so that, if a user is logged in, this information
+        // is readily available to the application (e.g. for limiting access to certain pages)
+        await dispatchGetAccountDetails(context);
+
+        // Now that we have the account figured out, let's figure out the state of the cart,
+        // fetching any one that we currently have or creating a new one if necessary
+        await dispatchFetchOrCreateCart(context);
+
+        const branch = matchRoutes(routes, req.path);
+        await fetchData(context, branch, req.query);
+        let pageTitle = fetchPageTitleAndSnippets(context, branch);
+
         debug('Executing navigate action');
-        Router.run(app.getComponent(), req.originalUrl, async function (Handler, state) {
 
-            // Trigger fetching and wait for the data required by the components of the given route
-            await fetchData(context, state);
+        // Route Errors (i.e. most likely 404 Not Found)
+        // There are are routes that may be valid in the sense that they "exist" but,
+        // in reality, are invalid because the underlying resource does not exist (e.g. Product ID not found).
+        // We should catch those here and act accordingly, like rendering Not Found page or setting
+        // proper HTTP status code.
+        //
+        // *** IMPORTANT ***
+        // Getting and clearing this info must be done BEFORE dehydrating the state or else,
+        // on first route change in the client, it will still think there's an error.
+        let routeError = context.getStore(ApplicationStore).getRouteError();
+        await dispatchClearRouteErrors(context); // Very important!!!
+        if (routeError) {
+            debug(`(Server) Route Error ${routeError}`);
+        }
 
-            // Fetch page title and snippets from the route handlers
-            let pageTitleAndSnippets = fetchPageTitleAndSnippets(context, state);
-            let pageTitle = pageTitleAndSnippets ? pageTitleAndSnippets.title : null;
+        // Fire navigate action
+        context.executeAction(navigateAction, {url: req.url }, function (err) {
 
-            // Route Errors (i.e. most likely 404 Not Found)
-            // There are are routes that may be valid in the sense that they "exist" but,
-            // in reality, are invalid because the underlying resource does not exist (e.g. Product ID not found).
-            // We should catch those here and act accordingly, like rendering Not Found page or setting
-            // proper HTTP status code.
-            //
-            // *** IMPORTANT ***
-            // Getting and clearing this info must be done BEFORE dehydrating the state or else,
-            // on first route change in the client, it will still think there's an error.
-            let routeError = context.getStore(ApplicationStore).getRouteError();
-            await dispatchClearRouteErrors(context); // Very important!!!
+            debug('Exposing context state');
+            let exposed = 'window.App=' + Serialize(app.dehydrate(context)) + ';';
+
+            debug('Rendering Application component into html');
+
+            let BaseHtmlComponent = React.createFactory(BaseHtml);
+            let html = ReactDOMServer.renderToStaticMarkup(BaseHtmlComponent({
+                context: context.getComponentContext(),
+                state: exposed,
+                markup: ReactDOMServer.renderToString(
+                    <FluxibleComponent context={context.getComponentContext()}>
+                        <IntlProvider locale={locale} messages={messages[locale]}>
+                            <StaticRouter location={req.url} context={context.getComponentContext()}>
+                                <DataLoader routes={routes}>
+                                    {renderRoutes(routes)}
+                                </DataLoader>
+                            </StaticRouter>
+                        </IntlProvider>
+                    </FluxibleComponent>
+                ),
+                css: webpackStats.css,
+                scripts: webpackStats.scripts,
+                locale: locale,
+                title: (pageTitle && pageTitle.title) || config.app.title[locale],
+                staticURL: '/static'
+            }));
+
+
+            // Figure out appopriate HTTP status code:
+            // 1) Not Found component -> 404
+            // 2) Route Error -> whichever is returned
+            // 3) Business as usual -> 200
+            let responseStatus;
             if (routeError) {
-                debug(`(Server) Route Error ${routeError}`);
+                responseStatus = routeError;
+            } else {
+                responseStatus = 200;
+                // responseStatus = state.routes.some(route => route.name == 'not-found') ? 404 : 200;
             }
 
-            // Fire navigate action
-            context.executeAction(navigateAction, state, function (err) {
-
-                debug('Exposing context state');
-                let exposed = 'window.App=' + Serialize(app.dehydrate(context)) + ';';
-
-                debug('Rendering Application component into html');
-                let Component = React.createFactory(Handler);
-                let BaseHtmlComponent = React.createFactory(BaseHtml);
-                let html = React.renderToStaticMarkup(BaseHtmlComponent({
-                    context: context.getComponentContext(),
-                    state: exposed,
-                    markup: React.renderToString(
-                        React.createElement(
-                            FluxibleComponent,
-                            { context: context.getComponentContext() },
-                            Component()
-                        )
-                    ),
-                    css: webpackStats.css,
-                    scripts: webpackStats.scripts,
-                    locale: locale,
-                    title: pageTitle || config.app.title,
-                    staticURL: '/static'
-                }));
-
-                // Figure out appopriate HTTP status code:
-                // 1) Not Found component -> 404
-                // 2) Route Error -> whichever is returned
-                // 3) Business as usual -> 200
-                let responseStatus;
-                if (routeError) {
-                    responseStatus = routeError;
-                } else {
-                    responseStatus = state.routes.some(route => route.name == 'not-found') ? 404 : 200;
-                }
-
-                // Return rendered component with appropriate status code.
-                debug('Sending markup');
-                return res.status(responseStatus).send(html);
-            });
+            // Return rendered component with appropriate status code.
+            debug('Sending markup');
+            return res.status(responseStatus).send(html);
         });
 
     } catch (err) {
         debug('Unhandled Server Error (Oops!)', err);
         let ServerErrorComponent = React.createFactory(ServerError);
-        let html = React.renderToStaticMarkup(ServerErrorComponent());
+        let html = ReactDOMServer.renderToStaticMarkup(ServerErrorComponent());
         return res.status(500).send(html);
     }
 });
@@ -208,7 +260,7 @@ server.use(async function (req, res, next) {
 //
 // b) Start server
 //
-const host = '0.0.0.0';
-const port = 3000;
+const host = 'localhost';
+const port = 3030;
 server.listen(port, host);
 debug('Storefront Isomorphic Server running. Host: %s, Port: %s', host, port);

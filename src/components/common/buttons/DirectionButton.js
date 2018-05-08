@@ -2,12 +2,13 @@
  * Imports
  */
 import React from 'react';
+import PropTypes from 'prop-types';
 
 // Flux
 import IntlStore from '../../../stores/Application/IntlStore';
 
 // Instantiate debugger
-let debug = require('debug')('nicistore');
+let debug = require('debug')('simple-store');
 
 /**
  * Component
@@ -15,7 +16,7 @@ let debug = require('debug')('nicistore');
 class DirectionButton extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired
     };
 
     //*** Component Lifecycle ***//

@@ -2,17 +2,12 @@
  * Imports
  */
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
-
-// Flux
-import IntlStore from '../../../stores/Application/IntlStore';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import PropTypes from 'prop-types';
 
 // Required components
 import Button from '../buttons/Button';
 import Text from '../typography/Text';
-
-// Translation data for this component
-import intlData from './AddressPreview.intl';
 
 /**
  * Component
@@ -20,7 +15,8 @@ import intlData from './AddressPreview.intl';
 class AddressPreview extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Component Lifecycle ***//
@@ -34,7 +30,7 @@ class AddressPreview extends React.Component {
     //*** Template ***//
 
     render() {
-        let intlStore = this.context.getStore(IntlStore);
+
         return (
             <div className="address-preview">
                 <div className="address-preview__name">
@@ -50,9 +46,7 @@ class AddressPreview extends React.Component {
                 {this.props.address.vatin ?
                     <div className="address-preview__vatin">
                         <Text>
-                            <FormattedMessage
-                                message={intlStore.getMessage(intlData, 'vatLabel')}
-                                locales={intlStore.getCurrentLocale()} />: {this.props.address.vatin}
+                            <FormattedMessage id="vatLabel" />: {this.props.address.vatin}
                         </Text>
                     </div>
                     :
@@ -88,9 +82,7 @@ class AddressPreview extends React.Component {
                     {this.props.onEditClick ?
                         <div className="address-preview__edit" onClick={this.props.onEditClick}>
                             <Text weight="bold">
-                                <FormattedMessage
-                                    message={intlStore.getMessage(intlData, 'edit')}
-                                    locales={intlStore.getCurrentLocale()} />
+                                <FormattedMessage id="editButton" />
                             </Text>
                         </div>
                         :
@@ -99,9 +91,7 @@ class AddressPreview extends React.Component {
                     {this.props.onDeleteClick ?
                         <div className="address-preview__delete" onClick={this.props.onDeleteClick}>
                             <Text>
-                                <FormattedMessage
-                                    message={intlStore.getMessage(intlData, 'delete')}
-                                    locales={intlStore.getCurrentLocale()} />
+                                <FormattedMessage id="deleteButton" />
                             </Text>
                         </div>
                         :

@@ -2,9 +2,13 @@
  * Imports.
  */
 import React from 'react';
+import queryString from 'query-string';
 import connectToStores from 'fluxible-addons-react/connectToStores';
-import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import { Link } from 'react-router-dom';
+import PropTypes from 'prop-types';
+
+import config from '../../../config';
 
 // Flux
 import AccountStore from '../../../stores/Account/AccountStore';
@@ -33,16 +37,16 @@ import intlData from './Login.intl';
 class Login extends React.Component {
 
     static contextTypes = {
-        executeAction: React.PropTypes.func.isRequired,
-        getStore: React.PropTypes.func.isRequired,
-        router: React.PropTypes.func.isRequired
+        executeAction: PropTypes.func.isRequired,
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Page Title and Snippets ***//
 
     static pageTitleAndSnippets = function (context) {
         return {
-            title: context.getStore(IntlStore).getMessage(intlData, 'login')
+            title: `${context.getStore(IntlStore).getMessage(intlData, 'title')} - ${config.app.title[context.getStore(IntlStore).getCurrentLocale()]}`
         }
     };
 
@@ -69,10 +73,11 @@ class Login extends React.Component {
     };
 
     next = () => {
-        if (this.props.query.next) {
-            this.context.router.transitionTo(this.props.query.next);
+        let query = queryString.parse(this.props.location.search);
+        if (query.next) {
+            this.props.history.push(query.next);
         } else {
-            this.context.router.transitionTo('homepage', {locale: this.context.getStore(IntlStore).getCurrentLocale()});
+            this.props.history.push(`/${this.context.intl.locale}`);
         }
     };
 
@@ -85,7 +90,7 @@ class Login extends React.Component {
 
         // If user is authenticated, redirect to homepage
         if (this.context.getStore(AccountStore).getAccountDetails()) {
-            this.context.router.transitionTo('homepage', {locale: this.context.getStore(IntlStore).getCurrentLocale()});
+            this.props.history.push(`/${this.context.intl.locale}`);
         }
     }
 
@@ -99,15 +104,15 @@ class Login extends React.Component {
                     fieldErrors[field] = nextProps._error.validation.details[field];
                 });
             } else if (!nextProps._error.hasOwnProperty('status')) {
-                fieldErrors.email = this.context.getStore(IntlStore).getMessage(intlData, 'invalidCredentials');
-                fieldErrors.password = this.context.getStore(IntlStore).getMessage(intlData, 'invalidCredentials');
+                fieldErrors.email = this.context.intl.formatMessage({id: 'invalidCredentials'});
+                fieldErrors.password = this.context.intl.formatMessage({id: 'invalidCredentials'});
             } else if (['pendingConfirmation', 'disabled'].indexOf(nextProps._error.status) !== -1) {
                 this.setState({
-                    errorMessage: this.context.getStore(IntlStore).getMessage(intlData, nextProps._error.status)
+                    errorMessage: this.context.intl.formatMessage({id: nextProps._error.status})
                 });
             } else {
                 this.setState({
-                    errorMessage: this.context.getStore(IntlStore).getMessage(intlData, 'unknownStatus')
+                    errorMessage: this.context.intl.formatMessage({id: 'unknownStatus'})
                 });
             }
         }
@@ -163,17 +168,14 @@ class Login extends React.Component {
     };
 
     handleSubmitClick = () => {
-
-        let intlStore = this.context.getStore(IntlStore);
-        
         this.setState({errorMessage: null});
         this.setState({fieldErrors: {}});
         let fieldErrors = {};
         if (!this.state.email) {
-            fieldErrors.email = intlStore.getMessage(intlData, 'fieldRequired');
+            fieldErrors.email = this.context.intl.formatMessage({id: 'fieldRequired'});
         }
         if (!this.state.password) {
-            fieldErrors.password = intlStore.getMessage(intlData, 'fieldRequired');
+            fieldErrors.password =this.context.intl.formatMessage({id: 'fieldRequired'});
         }
         this.setState({fieldErrors: fieldErrors});
 
@@ -205,40 +207,27 @@ class Login extends React.Component {
     //*** Template ***//
 
     render() {
-
-        //
-        // Helper methods & variables
-        //
-        let intlStore = this.context.getStore(IntlStore);
-        let routeParams = {locale: intlStore.getCurrentLocale()}; // Base route params
-
         // Return the "merge carts" modal
         let mergeCartsModal = () => {
             if (this.state.showMergeCartsModal === true) {
                 return (
-                    <Modal title={intlStore.getMessage(intlData, 'mergeCartsTitle')}>
+                    <Modal title={this.context.intl.formatMessage({id: 'mergeCartsTitle'})}>
                         <div className="login__modal-form-item">
-                            <FormattedMessage
-                                message={intlStore.getMessage(intlData, 'mergeCartsConfirm')}
-                                locales={intlStore.getCurrentLocale()} />
+                            <FormattedMessage id="mergeCartsConfirm" />
                         </div>
                         <div className="login__modal-form-actions">
                             <div className="login__modal-form-action-item">
                                 <Button type="default"
                                         onClick={this.handleMergeCartsModalNoClick}
                                         disabled={this.isLoading()}>
-                                    <FormattedMessage
-                                        message={intlStore.getMessage(intlData, 'no')}
-                                        locales={intlStore.getCurrentLocale()} />
+                                    <FormattedMessage id="no" />
                                 </Button>
                             </div>
                             <div className="login__modal-form-action-item">
                                 <Button type="primary"
                                         onClick={this.handleMergeCartsModalYesClick}
                                         disabled={this.isLoading()}>
-                                    <FormattedMessage
-                                        message={intlStore.getMessage(intlData, 'yes')}
-                                        locales={intlStore.getCurrentLocale()} />
+                                    <FormattedMessage id="yes" />
                                 </Button>
                             </div>
                         </div>
@@ -256,9 +245,7 @@ class Login extends React.Component {
                 <div className="login__container">
                     <div className="login__header">
                         <Heading>
-                            <FormattedMessage
-                                message={intlStore.getMessage(intlData, 'login')}
-                                locales={intlStore.getCurrentLocale()} />
+                            <FormattedMessage id="loginHeader" />
                         </Heading>
                     </div>
                     {this.state.errorMessage ?
@@ -270,30 +257,26 @@ class Login extends React.Component {
                     }
                     <div className="login__form">
                         <div className="login__form-item">
-                            <InputField label={intlStore.getMessage(intlData, 'email')}
+                            <InputField label={this.context.intl.formatMessage({id: 'email'})}
                                         onChange={this.handleFieldChange.bind(null, 'email')}
                                         onEnterPress={this.handleSubmitClick}
-                                        error={this.state.fieldErrors['email']}
-                                        value={this.state.email} />
+                                        error={this.state.fieldErrors['email']} />
                         </div>
                         <div className="login__form-item">
                             <InputField type="password"
-                                        label={intlStore.getMessage(intlData, 'password')}
+                                        label={this.context.intl.formatMessage({id: 'password'})}
                                         onChange={this.handleFieldChange.bind(null, 'password')}
                                         onEnterPress={this.handleSubmitClick}
-                                        error={this.state.fieldErrors['password']}
-                                        value={this.state.password} />
+                                        error={this.state.fieldErrors['password']} />
                         </div>
                         <div className="login__form-actions">
                             <Button type="primary" onClick={this.handleSubmitClick} disabled={this.isLoading()}>
-                                <FormattedMessage
-                                    message={intlStore.getMessage(intlData, 'submit')}
-                                    locales={intlStore.getCurrentLocale()} />
+                                <FormattedMessage id="loginButton" />
                             </Button>
                         </div>
                         <div className="login__form-reset">
-                            <Link className="login__link" to="reset" params={routeParams}>
-                                <Text>Esqueceu-se da password?</Text>
+                            <Link className="login__link" to={`/${this.context.intl.locale}/reset`} >
+                                <FormattedMessage id="forgotPassword" />
                             </Link>
                         </div>
                     </div>

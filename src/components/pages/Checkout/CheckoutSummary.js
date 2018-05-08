@@ -2,10 +2,9 @@
  * Imports
  */
 import React from 'react';
-import {FormattedMessage, FormattedNumber} from 'react-intl';
+import { FormattedMessage, FormattedNumber, injectIntl, intlShape } from 'react-intl';
 
-// Flux
-import IntlStore from '../../../stores/Application/IntlStore';
+import PropTypes from 'prop-types';
 
 // Required components
 import Button from '../../common/buttons/Button';
@@ -13,16 +12,14 @@ import Heading from '../../common/typography/Heading';
 import OrderSummary from '../../common/orders/OrderSummary';
 import Text from '../../common/typography/Text';
 
-// Translation data for this component
-import intlData from './CheckoutSummary.intl';
-
 /**
  * Component
  */
 class CheckoutSummary extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Component Lifecycle ***//
@@ -40,23 +37,23 @@ class CheckoutSummary extends React.Component {
         //
         // Helper methods & variables
         //
-        let intlStore = this.context.getStore(IntlStore);
+        let intl = this.context.intl;
 
         let missingInfo = [];
         if (!this.props.checkout.customer && !this.props.checkout.cart.userId) {
-            missingInfo.push(`1 - ${intlStore.getMessage(intlData, 'customerDetails')}`);
+            missingInfo.push(`1 - ${intl.formatMessage({id: 'customerDetails'})}`);
         }
         if (!this.props.checkout.shippingAddress || Object.keys(this.props.checkout.shippingAddress).length === 0) {
-            missingInfo.push(`2 - ${intlStore.getMessage(intlData, 'shippingAddress')}`);
+            missingInfo.push(`2 - ${intl.formatMessage({id: 'shippingInformation'})}`);
         }
         if (!this.props.checkout.shippingMethod) {
-            missingInfo.push(`2.1 - ${intlStore.getMessage(intlData, 'shippingMethod')}`);
+            missingInfo.push(`2.1 - ${intl.formatMessage({id: 'shippingMethod'})}`);
         }
         if (!this.props.useShippingAddressForBilling && (!this.props.checkout.billingAddress || Object.keys(this.props.checkout.billingAddress).length === 0)) {
-            missingInfo.push(`3 - ${intlStore.getMessage(intlData, 'billingAddress')}`);
+            missingInfo.push(`3 - ${intl.formatMessage({id: 'billingAddress'})}`);
         }
         if (!this.props.checkout.paymentMethod) {
-            missingInfo.push(`3.1 - ${intlStore.getMessage(intlData, 'paymentMethod')}`);
+            missingInfo.push(`3.1 - ${intl.formatMessage({id: 'paymentMethod'})}`);
         }
 
         //
@@ -70,13 +67,12 @@ class CheckoutSummary extends React.Component {
                 {missingInfo.length > 0 ?
                     <div className="checkout-summary__warning">
                         <Heading size="small">
-                            <FormattedMessage message={intlStore.getMessage(intlData, 'whatsMissing')}
-                                              locales={intlStore.getCurrentLocale()} />
+                            <FormattedMessage id="whatsMissing" />
                         </Heading>
                         {missingInfo.map(function (detail, idx) {
                             return (
-                                <div className="checkout-summary__warning-item">
-                                    <Text key={idx} size="small">{detail}</Text>
+                                <div key={idx} className="checkout-summary__warning-item">
+                                    <Text size="small">{detail}</Text>
                                 </div>
                             );
                         })}
@@ -87,8 +83,7 @@ class CheckoutSummary extends React.Component {
                 <div className="checkout-summary__row checkout-summary__submit">
                     <div className="checkout-summary__submit-button">
                         <Button type="primary" disabled={!this.props.readyForCheckout} onClick={this.props.onCheckoutClick}>
-                            <FormattedMessage message={intlStore.getMessage(intlData, 'checkout')} 
-                                              locales={intlStore.getCurrentLocale()} />
+                            <FormattedMessage id="checkoutButton" />
                         </Button>
                     </div>
                 </div>

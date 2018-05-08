@@ -1,14 +1,11 @@
 export default {
-    en: {
-        homepage: 'Homepage',
-        pageTitle: 'Products',
-        pagination: 'Page {currentPage} of {totalPages}',
-        productsList: 'Products'
+    "uk": {
+        "title": "Товари",
     },
-    pt: {
-        homepage: 'Página Principal',
-        pageTitle: 'Produtos',
-        pagination: 'Página {currentPage} de {totalPages}',
-        productsList: 'Produtos'
-    }
+    "ru": {
+        "title": "Товары",
+    },
+    "en": {
+        "title": "Products",
+    },
 };

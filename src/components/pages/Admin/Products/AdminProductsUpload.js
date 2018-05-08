@@ -2,21 +2,16 @@
  * Imports
  */
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
-
-// Flux
-import IntlStore from '../../../../stores/Application/IntlStore';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import PropTypes from 'prop-types';
 
 // Required components
 import Button from '../../../common/buttons/Button';
 import Select from '../../../common/forms/Select';
 import Text from '../../../common/typography/Text';
 
-// Translation data for this component
-import intlData from './AdminProductsUpload.intl';
-
 // Instantiate logger
-let debug = require('debug')('nicistore');
+let debug = require('debug')('simple-store');
 
 /**
  * Component
@@ -24,7 +19,8 @@ let debug = require('debug')('nicistore');
 class AdminProductsUpload extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Initial State ***//
@@ -54,15 +50,15 @@ class AdminProductsUpload extends React.Component {
     };
 
     handleSubmitClick = () => {
-        let intlStore = this.context.getStore(IntlStore);
+        let intl = this.context.intl;
 
         this.setState({fieldErrors: {}});
         let fieldErrors = {};
         if (!this.state.type) {
-            fieldErrors.type = intlStore.getMessage(intlData, 'fieldRequired');
+            fieldErrors.type = intl.formatMessage({id: 'fieldRequired'});
         }
         if (!this.state.file) {
-            fieldErrors.file = intlStore.getMessage(intlData, 'fieldRequired');
+            fieldErrors.file = intl.formatMessage({id: 'fieldRequired'});
         }
         this.setState({fieldErrors: fieldErrors});
 
@@ -75,18 +71,18 @@ class AdminProductsUpload extends React.Component {
     };
 
     //*** Template ***//
-    
+
     render() {
 
         //
         // Helper methods & variables
         //
 
-        let intlStore = this.context.getStore(IntlStore);
+        let intl = this.context.intl;
 
         let uploadTypeOptions = [
-            {name: intlStore.getMessage(intlData, 'catalog'), value: 'catalog'},
-            {name: intlStore.getMessage(intlData, 'images'), value: 'images'}
+            {name: intl.formatMessage({id: 'catalogHeading'}), value: 'catalog'},
+            {name: intl.formatMessage({id: 'imagesHeading'}), value: 'images'}
         ];
 
         //
@@ -95,7 +91,7 @@ class AdminProductsUpload extends React.Component {
         return (
             <div className="admin-products-upload">
                 <div className="admin-products-upload__form-item">
-                    <Select label={intlStore.getMessage(intlData, 'type')}
+                    <Select label={intl.formatMessage({id: 'type'})}
                             placeholder
                             options={uploadTypeOptions}
                             onChange={this.handleTypeChange}
@@ -114,16 +110,12 @@ class AdminProductsUpload extends React.Component {
                 <div className="admin-products-upload__actions">
                     <div className="admin-products-upload__button">
                         <Button type="default" onClick={this.props.onCancelClick} disabled={this.props.loading}>
-                            <FormattedMessage
-                                message={intlStore.getMessage(intlData, 'cancel')}
-                                locales={intlStore.getCurrentLocale()} />
+                            <FormattedMessage id="cancelButton" />
                         </Button>
                     </div>
                     <div className="admin-products-upload__button">
                         <Button type="primary" onClick={this.handleSubmitClick} disabled={this.props.loading}>
-                            <FormattedMessage
-                                message={intlStore.getMessage(intlData, 'submit')}
-                                locales={intlStore.getCurrentLocale()} />
+                            <FormattedMessage id="uploadButton" />
                         </Button>
                     </div>
                 </div>

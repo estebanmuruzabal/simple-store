@@ -2,12 +2,13 @@
  * Imports
  */
 import React from 'react';
+import queryString from 'query-string';
 import connectToStores from 'fluxible-addons-react/connectToStores';
-import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router';
+import { injectIntl, intlShape } from 'react-intl';
+import {Link} from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 // Flux
-import IntlStore from '../../../stores/Application/IntlStore';
 import ResponsiveStore from '../../../stores/Application/ResponsiveStore';
 
 // Required Components
@@ -15,7 +16,7 @@ import Heading from '../typography/Heading';
 import Text from '../typography/Text';
 
 // Instantiate logger
-let debug = require('debug')('nicistore');
+let debug = require('debug')('simple-store');
 
 /**
  * Component
@@ -23,7 +24,8 @@ let debug = require('debug')('nicistore');
 class TreeMenu extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Initial State ***//
@@ -72,7 +74,7 @@ class TreeMenu extends React.Component {
         //
         // Helper methods & variables
         //
-        let intlStore = this.context.getStore(IntlStore);
+        let locale = this.context.intl.locale;
 
         // Process title class
         let titleClass = 'tree-menu__title';
@@ -119,9 +121,7 @@ class TreeMenu extends React.Component {
                                 <div className={getItemClass(child)}>
                                     <Text size="small">
                                         <span className="tree-menu__link">
-                                            <FormattedMessage
-                                                message={intlStore.getMessage(child.name)}
-                                                locales={intlStore.getCurrentLocale()} />
+                                            {child.name[locale]}
                                         </span>
                                     </Text>
                                 </div>
@@ -144,8 +144,11 @@ class TreeMenu extends React.Component {
                     return (
                         <li key={idx} className={itemClass}>
                             <Link className="tree-menu__link"
-                                  to={link.to} params={link.params} query={link.query}>
-                                <Text size="small">{link.name}</Text>
+                                  to={{
+                                    pathname: link.to,
+                                    search: queryString.stringify(link.query)
+                                  }}>
+                                <Text size="small">{link.name[locale]}</Text>
                             </Link>
                         </li>
                     );
@@ -157,9 +160,7 @@ class TreeMenu extends React.Component {
                             <div className={getItemClass(item)}>
                                 <Text size="small">
                                     <span className="tree-menu__link">
-                                        <FormattedMessage
-                                            message={intlStore.getMessage(item.name)}
-                                            locales={intlStore.getCurrentLocale()} />
+                                        {item.name[locale]}
                                     </span>
                                 </Text>
                             </div>

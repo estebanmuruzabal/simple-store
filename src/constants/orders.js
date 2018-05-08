@@ -1,6 +1,6 @@
-import keyMirror from 'react/lib/keyMirror';
+import keymirror from 'keymirror';
 
-export default keyMirror({
+export default keymirror({
     ORDER_CREATE: null,
     ORDER_CREATE_SUCCESS: null,
     ORDER_CREATE_ERROR: null,

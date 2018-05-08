@@ -2,19 +2,14 @@
  * Imports
  */
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router';
-
-// Flux
-import IntlStore from '../../../../stores/Application/IntlStore';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import {Link} from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 // Required Components
 import Heading from '../../typography/Heading';
 import NewsletterSubscription from '../../forms/NewsletterSubscription';
 import Text from '../../typography/Text';
-
-// Translation data for this component
-import intlData from './Footer.intl';
 
 /**
  * Component
@@ -22,7 +17,7 @@ import intlData from './Footer.intl';
 class Footer extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        intl: intlShape.isRequired,
     };
 
     //*** Component Lifecycle ***//
@@ -37,26 +32,10 @@ class Footer extends React.Component {
 
     render() {
 
-        //
-        // Helper methods & variables
-        //
-
-        let intlStore = this.context.getStore(IntlStore);
-        let routeParams = {locale: intlStore.getCurrentLocale()};
-
-        // Stores
-        let storeLinks = [
-            {name: 'Arrábida Shopping', link: {to: 'stores', params: routeParams}},
-            {name: 'Mar Shopping', link: {to: 'stores', params: routeParams}},
-            {name: 'Loja Foz', link: {to: 'stores', params: routeParams}},
-            {name: 'Loja Outlet', link: {to: 'stores', params: routeParams}}
-        ];
-
         // Info links
         let infoLinks = [
-            {name: 'Apoio ao Cliente', link: {to: 'info', params: routeParams}},
-            {name: 'Portes de Envio', link: {to: 'info', params: routeParams}},
-            {name: 'Termos e Condições', link: {to: 'info', params: routeParams}}
+            {name: this.context.intl.formatMessage({id: 'infoLink'}), link: {to: `/${this.context.intl.locale}/info`}},
+            {name: this.context.intl.formatMessage({id: 'deliveryLink'}), link: {to: `/${this.context.intl.locale}/delivery`}},
         ];
 
         // Return a content block's items
@@ -64,7 +43,7 @@ class Footer extends React.Component {
             return items.map(function (item, idx) {
                 return (
                     <li key={idx} className="footer__list-item">
-                        <Link className="footer__link" to={item.link.to} params={item.link.params}>
+                        <Link className="footer__link" to={item.link.to}>
                             <Text size="small">{item.name}</Text>
                         </Link>
                     </li>
@@ -84,24 +63,7 @@ class Footer extends React.Component {
                         <div className="footer__block">
                             <div className="footer__block-title">
                                 <Heading size="small">
-                                    <FormattedMessage
-                                        message={intlStore.getMessage(intlData, 'storesTitle')}
-                                        locales={intlStore.getCurrentLocale()} />
-                                </Heading>
-                            </div>
-                            <div className="footer__block-content">
-                                <ul>
-                                    {blockItems(storeLinks)}
-                                </ul>
-                            </div>
-                        </div>
-
-                        <div className="footer__block">
-                            <div className="footer__block-title">
-                                <Heading size="small">
-                                    <FormattedMessage
-                                        message={intlStore.getMessage(intlData, 'infoTitle')}
-                                        locales={intlStore.getCurrentLocale()} />
+                                    <FormattedMessage id="infoTitle" />
                                 </Heading>
                             </div>
                             <div className="footer__block-content">
@@ -114,9 +76,7 @@ class Footer extends React.Component {
                         <div className="footer__block">
                             <div className="footer__block-title">
                                 <Heading size="small">
-                                    <FormattedMessage
-                                        message={intlStore.getMessage(intlData, 'socialTitle')}
-                                        locales={intlStore.getCurrentLocale()} />
+                                    <FormattedMessage id="socialTitle" />
                                 </Heading>
                             </div>
                             <div className="footer__block-content">
@@ -124,7 +84,7 @@ class Footer extends React.Component {
                                     <li className="footer__social-item">
                                         <div className="footer__social-icon footer__facebook-icon"></div>
                                         <div>
-                                            <a className="footer__link footer__social-link" href="//facebook.com/nicistore" target="_blank">
+                                            <a className="footer__link footer__social-link" href="//facebook.com" target="_blank">
                                                 <Text size="small">Facebook</Text>
                                             </a>
                                         </div>
@@ -132,24 +92,8 @@ class Footer extends React.Component {
                                     <li className="footer__social-item">
                                         <div className="footer__social-icon footer__instagram-icon"></div>
                                         <div>
-                                            <a className="footer__link footer__social-link" href="//instagram.com/nicistore" target="_blank">
+                                            <a className="footer__link footer__social-link" href="//instagram.com" target="_blank">
                                                 <Text size="small">Instagram</Text>
-                                            </a>
-                                        </div>
-                                    </li>
-                                    <li className="footer__social-item">
-                                        <div className="footer__social-icon footer__pinterest-icon"></div>
-                                        <div>
-                                            <a className="footer__link footer__social-link" href="//pinterest.com/nicistore" target="_blank">
-                                                <Text size="small">Pinterest</Text>
-                                            </a>
-                                        </div>
-                                    </li>
-                                    <li className="footer__social-item">
-                                        <div className="footer__social-icon footer__twitter-icon"></div>
-                                        <div>
-                                            <a className="footer__link footer__social-link" href="//twitter.com/nicistore" target="_blank">
-                                                <Text size="small">Twitter</Text>
                                             </a>
                                         </div>
                                     </li>
@@ -160,9 +104,7 @@ class Footer extends React.Component {
                         <div className="footer__block">
                             <div className="footer__block-title">
                                 <Heading size="small">
-                                    <FormattedMessage
-                                        message={intlStore.getMessage(intlData, 'newsletterTitle')}
-                                        locales={intlStore.getCurrentLocale()} />
+                                    <FormattedMessage id="newsletterTitle" />
                                 </Heading>
                             </div>
                             <div className="footer__block-content">
@@ -172,7 +114,7 @@ class Footer extends React.Component {
 
                     </div>
                     <div className="footer__copyright">
-                        <Text size="small">© {new Date().getFullYear()} NICI</Text>
+                        <Text size="small">© {new Date().getFullYear()} {this.props.brandName}</Text>
                     </div>
                 </div>
             </div>

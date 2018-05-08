@@ -2,11 +2,10 @@
  * Imports
  */
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import {Link} from 'react-router-dom';
+import PropTypes from 'prop-types';
 
-// Flux
-import IntlStore from '../../../stores/Application/IntlStore';
 
 // Required components
 import Button from '../buttons/Button';
@@ -16,11 +15,8 @@ import Textarea from '../forms/Textarea';
 
 import UserComment from './UserComment';
 
-// Translation data for this component
-import intlData from './CommentBox.intl';
-
 // Instantiate debugger
-let debug = require('debug')('nicistore');
+let debug = require('debug')('simple-store');
 
 /**
  * Component
@@ -28,7 +24,8 @@ let debug = require('debug')('nicistore');
 class CommentBox extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Initial State ***//
@@ -54,12 +51,10 @@ class CommentBox extends React.Component {
 
     handleButtonClick = () => {
 
-        let intlStore = this.context.getStore(IntlStore);
-
         this.setState({fieldErrors: {}});
         let fieldErrors = {};
         if (!this.state.message) {
-            fieldErrors.message = intlStore.getMessage(intlData, 'fieldRequired');
+            fieldErrors.message = this.context.intl.formatMessage({id: 'fieldRequired'});
         }
         this.setState({fieldErrors: fieldErrors});
 
@@ -75,17 +70,16 @@ class CommentBox extends React.Component {
         //
         // Helper methods & variables
         //
-        let intlStore = this.context.getStore(IntlStore);
-        let routeParams = {locale: intlStore.getCurrentLocale()}; // Base route params
+        let locale = this.context.intl.locale;
 
         // Return the list UI block, according to whether there are comments or not
         let comments = () => {
             if (this.props.comments && this.props.comments.length > 0) {
                 return (
                     <div className="comment-box__list">
-                        {this.props.comments.map(function (comment) {
+                        {this.props.comments.map(function (comment, idx) {
                             return (
-                                <div className="comment-box__comment-item">
+                                <div key={idx} className="comment-box__comment-item">
                                     <UserComment author={comment.user.name} date={comment.createdAt}>
                                         {comment.message}
                                     </UserComment>
@@ -98,8 +92,7 @@ class CommentBox extends React.Component {
                 return (
                     <div className="comment-box__no-comments">
                         <Text>
-                            <FormattedMessage message={intlStore.getMessage(intlData, 'noComments')}
-                                              locales={intlStore.getCurrentLocale()} />!
+                            <FormattedMessage id="noComments" />!
                         </Text>
                     </div>
                 );
@@ -107,19 +100,17 @@ class CommentBox extends React.Component {
         };
 
         let loginTranslation = (
-            <Link className="comment-box__link" to="login" params={routeParams}>
+            <Link className="comment-box__link" to={`/${locale}/login`} >
                 <Text>
-                    <FormattedMessage message={intlStore.getMessage(intlData, 'login')}
-                                      locales={intlStore.getCurrentLocale()} />
+                    <FormattedMessage id="commentLogin" />
                 </Text>
             </Link>
         );
 
         let registerTranslation = (
-            <Link className="comment-box__link" to="register" params={routeParams}>
+            <Link className="comment-box__link" to={`/${locale}/register`} >
                 <Text>
-                    <FormattedMessage message={intlStore.getMessage(intlData, 'register')}
-                                      locales={intlStore.getCurrentLocale()} />
+                    <FormattedMessage id="commentRegister" />
                 </Text>
             </Link>
         );
@@ -131,15 +122,16 @@ class CommentBox extends React.Component {
             <div className="comment-box">
                 <div className="comment-box__comments" itemScope itemType="http://schema.org/UserComments">
                     <Heading size="medium">
-                        <FormattedMessage message={intlStore.getMessage(intlData, 'comments')}
-                                          locales={intlStore.getCurrentLocale()}
-                                          total={(this.props.comments) ? this.props.comments.length : 0} />
+                        <FormattedMessage id="commentComments"
+                                          values={{
+                                            total: (this.props.comments) ? this.props.comments.length : 0
+                                          }} />
                     </Heading>
                     {comments()}
                 </div>
                 {this.props.user ?
                     <div className="comment-box__submit">
-                    <Textarea label={intlStore.getMessage(intlData, 'leaveComment')}
+                    <Textarea label={this.context.intl.formatMessage({id: 'leaveComment'})}
                               onChange={this.handleTextareaChange}
                               error={this.state.fieldErrors.message}
                               disabled={this.props.disabled || this.props.loading} />
@@ -149,8 +141,7 @@ class CommentBox extends React.Component {
                                         disabled={this.props.disabled} loading={this.props.loading}>
                                     <i className="fa fa-comment-o" aria-hidden="true" />
                                     &nbsp;
-                                    <FormattedMessage message={intlStore.getMessage(intlData, 'submit')}
-                                                      locales={intlStore.getCurrentLocale()} />
+                                    <FormattedMessage id="commentSubmit" />
                                 </Button>
                             </div>
                         </div>
@@ -158,10 +149,10 @@ class CommentBox extends React.Component {
                     :
                     <div className="comment-box__no-user">
                         <Text>
-                            <FormattedMessage message={intlStore.getMessage(intlData, 'noUser')}
-                                              locales={intlStore.getCurrentLocale()}
-                                              login={loginTranslation}
-                                              register={registerTranslation} />
+                            <FormattedMessage id="noUser"
+                                              values={{
+                                                'login': loginTranslation,
+                                                'register': registerTranslation }} />
                         </Text>
                     </div>
                 }

@@ -3,11 +3,10 @@
  */
 import React from 'react';
 import moment from 'moment';
-import {FormattedMessage, FormattedNumber} from 'react-intl';
-import {Link} from 'react-router';
+import { FormattedMessage, FormattedNumber, injectIntl, intlShape } from 'react-intl';
 
-// Flux
-import IntlStore from '../../../stores/Application/IntlStore';
+import {Link} from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 // Required components
 import AddressPreview from '../forms/AddressPreview';
@@ -18,22 +17,19 @@ import Text from '../typography/Text';
 
 import OrderStatus from './OrderStatus';
 
-// Translation data for this component
-import intlData from './OrderDetails.intl';
-
 /**
  * Component
  */
 class OrderDetails extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Component Lifecycle ***//
 
     componentDidMount() {
-
         // Component styles
         require('./OrderDetails.scss');
     }
@@ -45,38 +41,34 @@ class OrderDetails extends React.Component {
         //
         // Helper methods & variables
         //
-        let intlStore = this.context.getStore(IntlStore);
-        let routeParams = {locale: this.context.getStore(IntlStore).getCurrentLocale()}; // Base route params
+        let locale = this.context.intl.locale;
 
         // Order products list table
         let headings = [
-            <FormattedMessage message={intlStore.getMessage(intlData, 'nameHeading')}
-                              locales={intlStore.getCurrentLocale()} />,
-            <span>ID</span>,
-            <FormattedMessage message={intlStore.getMessage(intlData, 'skuHeading')}
-                              locales={intlStore.getCurrentLocale()} />,
-            <FormattedMessage message={intlStore.getMessage(intlData, 'quantityHeading')}
-                              locales={intlStore.getCurrentLocale()} />,
-            <FormattedMessage message={intlStore.getMessage(intlData, 'priceHeading')}
-                              locales={intlStore.getCurrentLocale()} />
+            <FormattedMessage id="nameHeading" />,
+            <FormattedMessage id="id" />,
+            <FormattedMessage id="skuHeading" />,
+            <FormattedMessage id="quantityHeading" />,
+            <FormattedMessage id="priceHeading" />
         ];
         let rows = this.props.order.checkout.cart.products.map((product) => {
             return {
                 data: [
                     <Text size="medium">
-                        <FormattedMessage message={intlStore.getMessage(product.details.name)}
-                                          locales={intlStore.getCurrentLocale()} />
+                        {product.details.name[locale]}
                     </Text>,
                     <span className="order-details__link">
-                        <Link to="product" params={Object.assign({productId: product.id}, routeParams)}>
+                        <Link to={`/${locale}/products/${product.id}`}>
                             <Text size="small">{product.id}</Text>
                         </Link>
                     </span>,
                     <Text size="medium">{product.details.sku}</Text>,
                     <Text size="medium">{product.quantity}</Text>,
-                    <FormattedNumber value={product.details.pricing.retail}
+                    <Text size="medium">
+                        <FormattedNumber value={product.details.pricing.retail}
                                      style="currency"
                                      currency={this.props.order.checkout.currency} />
+                    </Text>
                 ]
             };
         });
@@ -91,8 +83,7 @@ class OrderDetails extends React.Component {
                         <div className="order-details__overview-item">
                             <div className="order-details__overview-item-label">
                                 <Text size="medium" weight="bold">
-                                    <FormattedMessage message={intlStore.getMessage(intlData, 'customer')}
-                                                      locales={intlStore.getCurrentLocale()} />:
+                                    <FormattedMessage id="customer" />:
                                 </Text>
                             </div>
                             <div className="order-details__overview-item-value">
@@ -114,8 +105,7 @@ class OrderDetails extends React.Component {
                     <div className="order-details__overview-item">
                         <div className="order-details__overview-item-label">
                             <Text size="medium" weight="bold">
-                                <FormattedMessage message={intlStore.getMessage(intlData, 'createdAt')}
-                                                  locales={intlStore.getCurrentLocale()} />:
+                                <FormattedMessage id="createdAt" />:
                             </Text>
                         </div>
                         <div className="order-details__overview-item-value">
@@ -127,8 +117,7 @@ class OrderDetails extends React.Component {
                     <div className="order-details__overview-item">
                         <div className="order-details__overview-item-label">
                             <Text size="medium" weight="bold">
-                                <FormattedMessage message={intlStore.getMessage(intlData, 'id')}
-                                                  locales={intlStore.getCurrentLocale()} />:
+                                <FormattedMessage id="id" />:
                             </Text>
                         </div>
                         <div className="order-details__overview-item-value">
@@ -140,8 +129,7 @@ class OrderDetails extends React.Component {
                     <div className="order-details__overview-item">
                         <div className="order-details__overview-item-label">
                             <Text size="medium" weight="bold">
-                                <FormattedMessage message={intlStore.getMessage(intlData, 'status')}
-                                                  locales={intlStore.getCurrentLocale()} />:
+                                <FormattedMessage id="status" />:
                             </Text>
                         </div>
                         <div className="order-details__overview-item-value">
@@ -151,8 +139,7 @@ class OrderDetails extends React.Component {
                 </div>
                 <div className="order-details__detail">
                     <Heading size="medium">
-                        <FormattedMessage message={intlStore.getMessage(intlData, 'billingDetails')}
-                                          locales={intlStore.getCurrentLocale()} />
+                        <FormattedMessage id="billingDetails" />
                     </Heading>
                     <div className="order-details__detail-content">
                         <div>
@@ -160,19 +147,16 @@ class OrderDetails extends React.Component {
                         </div>
                         <div>
                             <Text size="medium" weight="bold">
-                                <FormattedMessage message={intlStore.getMessage(intlData, 'paymentMethod')}
-                                                  locales={intlStore.getCurrentLocale()} />:
+                                <FormattedMessage id="paymentMethod" />:
                             </Text>
                             <br />
                             <Text size="medium">{this.props.order.checkout.paymentMethod}</Text>
                         </div>
                     </div>
-
                 </div>
                 <div className="order-details__detail">
                     <Heading size="medium">
-                        <FormattedMessage message={intlStore.getMessage(intlData, 'shippingDetails')}
-                                          locales={intlStore.getCurrentLocale()} />
+                        <FormattedMessage id="shippingDetails" />
                     </Heading>
                     <div className="order-details__detail-content">
                         <div>
@@ -180,16 +164,14 @@ class OrderDetails extends React.Component {
                         </div>
                         <div>
                             <Text size="medium" weight="bold">
-                                <FormattedMessage message={intlStore.getMessage(intlData, 'shippingMethod')}
-                                                  locales={intlStore.getCurrentLocale()} />:
+                                <FormattedMessage id="shippingMethod" />:
                             </Text>
                             <br />
                             <Text size="medium">{this.props.order.checkout.shippingMethod}</Text>
                             <br />
                             <br />
                             <Text size="medium" weight="bold">
-                                <FormattedMessage message={intlStore.getMessage(intlData, 'shippingCost')}
-                                                  locales={intlStore.getCurrentLocale()} />:
+                                <FormattedMessage id="shippingCost" />:
                             </Text>
                             <br />
                             <Text size="medium">
@@ -202,8 +184,7 @@ class OrderDetails extends React.Component {
                 </div>
                 <div className="order-details__detail">
                     <Heading size="medium">
-                        <FormattedMessage message={intlStore.getMessage(intlData, 'products')}
-                                          locales={intlStore.getCurrentLocale()} />
+                        <FormattedMessage id="products" />
                     </Heading>
                     <div className="order-details__detail-content">
                         <Breakpoint point="handhelds">
@@ -230,8 +211,7 @@ class OrderDetails extends React.Component {
                     <div className="order-details__detail-content order-details__detail-content--column">
                         <div>
                             <Text size="medium" weight="bold">
-                                <FormattedMessage message={intlStore.getMessage(intlData, 'subTotal')}
-                                                  locales={intlStore.getCurrentLocale()} />:
+                                <FormattedMessage id="subTotal" />:
                             </Text>
                             <br />
                             <FormattedNumber value={this.props.order.checkout.subTotal}
@@ -240,8 +220,7 @@ class OrderDetails extends React.Component {
                         </div>
                         <div>
                             <Text size="medium" weight="bold">
-                                <FormattedMessage message={intlStore.getMessage(intlData, 'shipping')}
-                                                  locales={intlStore.getCurrentLocale()} />:
+                                <FormattedMessage id="shipping" />:
                             </Text>
                             <br />
                             <FormattedNumber value={this.props.order.checkout.shippingCost}
@@ -250,8 +229,7 @@ class OrderDetails extends React.Component {
                         </div>
                         <div>
                             <Text size="medium" weight="bold">
-                                <FormattedMessage message={intlStore.getMessage(intlData, 'vat')}
-                                                  locales={intlStore.getCurrentLocale()} />:
+                                <FormattedMessage id="vat" />:
                             </Text>
                             <br />
                             <FormattedNumber value={this.props.order.checkout.vatTotal}
@@ -260,8 +238,7 @@ class OrderDetails extends React.Component {
                         </div>
                         <div>
                             <Text size="medium" weight="bold">
-                                <FormattedMessage message={intlStore.getMessage(intlData, 'total')}
-                                                  locales={intlStore.getCurrentLocale()} />:
+                                <FormattedMessage id="total" />:
                             </Text>
                             <br />
                             <FormattedNumber value={this.props.order.checkout.total}

@@ -7,7 +7,7 @@ import React from 'react';
 import Text from '../typography/Text';
 
 // Instantiate logger
-let debug = require('debug')('nicistore');
+let debug = require('debug')('simple-store');
 
 /**
  * Component

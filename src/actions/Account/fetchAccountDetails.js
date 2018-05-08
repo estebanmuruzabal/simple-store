@@ -1,5 +1,6 @@
 import accountActions from '../../constants/account';
 
+
 export default function fetchAccountDetails(context, payload, done) {
     context.dispatch(accountActions.ACCOUNT_FETCH);
     context.api.account.get().then(function successFn(result) {

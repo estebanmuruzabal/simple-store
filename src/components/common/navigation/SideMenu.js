@@ -3,20 +3,16 @@
  */
 import React from 'react';
 import connectToStores from 'fluxible-addons-react/connectToStores';
-import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import {Link} from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 // Flux
 import AccountStore from '../../../stores/Account/AccountStore';
-import IntlStore from '../../../stores/Application/IntlStore';
-
 import triggerDrawer from '../../../actions/Application/triggerDrawer';
 
 // Required Components
 import Text from '../typography/Text';
-
-// Translation data for this component
-import intlData from './SideMenu.intl';
 
 /**
  * Component
@@ -24,8 +20,9 @@ import intlData from './SideMenu.intl';
 class SideMenu extends React.Component {
 
     static contextTypes = {
-        executeAction: React.PropTypes.func.isRequired,
-        getStore: React.PropTypes.func.isRequired
+        executeAction: PropTypes.func.isRequired,
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Initial State ***//
@@ -55,18 +52,14 @@ class SideMenu extends React.Component {
     //*** Template ***//
 
     render() {
-        let intlStore = this.context.getStore(IntlStore);
-        let routeParams = {locale: intlStore.getCurrentLocale()};
         return (
             <div className="side-menu">
                 <nav>
                     <ul className="side-menu__homepage">
                         <li className="side-menu__item side-menu__collection-item" onClick={this.handleItemClick}>
-                            <Link to='homepage' params={routeParams}>
+                            <Link to={`/${this.context.intl.locale}`}>
                                 <Text size="small">
-                                    <FormattedMessage
-                                        message={intlStore.getMessage(intlData, 'homepage')}
-                                        locales={intlStore.getCurrentLocale()} />
+                                    <FormattedMessage id="homepage" />
                                 </Text>
                             </Link>
                         </li>
@@ -75,7 +68,7 @@ class SideMenu extends React.Component {
                         {this.props.collections && this.props.collections.map((obj, idx) => {
                             return (
                                 <li key={idx} className="side-menu__item side-menu__collection-item" onClick={this.handleItemClick}>
-                                    <Link to={obj.to} params={Object.assign(obj.params || {}, routeParams)}>
+                                    <Link to={obj.to}>
                                         <Text size="medium">{obj.name}</Text>
                                     </Link>
                                 </li>
@@ -85,29 +78,23 @@ class SideMenu extends React.Component {
                     {this.state.user ?
                         <ul className="side-menu__account">
                             <li className="side-menu__item side-menu__account-item" onClick={this.handleItemClick}>
-                                <Link to='account' params={routeParams}>
+                                <Link to={`/${this.context.intl.locale}/account`}>
                                     <div>
                                         <Text size="small">
-                                            <FormattedMessage
-                                                message={intlStore.getMessage(intlData, 'hi')}
-                                                locales={intlStore.getCurrentLocale()} />, {this.state.user.name.split(' ')[0]}
+                                            <FormattedMessage id="hi" />, {this.state.user.name.split(' ')[0]}
                                         </Text>
                                     </div>
                                     <div>
                                         <Text size="small" weight="bold">
-                                            <FormattedMessage
-                                                message={intlStore.getMessage(intlData, 'myAccount')}
-                                                locales={intlStore.getCurrentLocale()} />
+                                            <FormattedMessage id="myAccount" />
                                         </Text>
                                     </div>
                                 </Link>
                             </li>
                             <li className="side-menu__item side-menu__account-item" onClick={this.handleItemClick}>
-                                <Link to='logout' params={routeParams}>
+                                <Link to={`/${this.context.intl.locale}/logout`} >
                                     <Text size="small" weight="bold">
-                                        <FormattedMessage
-                                            message={intlStore.getMessage(intlData, 'logout')}
-                                            locales={intlStore.getCurrentLocale()} />
+                                        <FormattedMessage id="logoutButton" />
                                     </Text>
                                 </Link>
                             </li>
@@ -115,20 +102,16 @@ class SideMenu extends React.Component {
                         :
                         <ul className="side-menu__account">
                             <li className="side-menu__item side-menu__account-item" onClick={this.handleItemClick}>
-                                <Link to='login' params={routeParams}>
+                                <Link to={`/${this.context.intl.locale}/login`}>
                                     <Text size="small" weight="bold">
-                                        <FormattedMessage
-                                            message={intlStore.getMessage(intlData, 'login')}
-                                            locales={intlStore.getCurrentLocale()} />
+                                        <FormattedMessage id="loginHeader" />
                                     </Text>
                                 </Link>
                             </li>
                             <li className="side-menu__item side-menu__account-item" onClick={this.handleItemClick}>
-                                <Link to='register' params={routeParams}>
+                                <Link to={`/${this.context.intl.locale}/register`}>
                                     <Text size="small" weight="bold">
-                                        <FormattedMessage
-                                            message={intlStore.getMessage(intlData, 'register')}
-                                            locales={intlStore.getCurrentLocale()} />
+                                        <FormattedMessage id="registerHeader" />
                                     </Text>
                                 </Link>
                             </li>

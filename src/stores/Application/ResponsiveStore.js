@@ -72,11 +72,13 @@ class ResponsiveStore extends BaseStore {
 
         if (width <= BREAK_SMALL) {
             this.breakpoint = 'handhelds';
-        } else if (width > BREAK_SMALL && width < BREAK_LARGE) {
+        } else if (width > BREAK_SMALL && width <= BREAK_LARGE) {
             this.breakpoint = 'medium-screens';
         } else {
             this.breakpoint = 'wide-screens';
         }
+
+        let prevPrevBreakpoint = prevBreakpoint;
 
         if(this.breakpoint != prevBreakpoint) {
             this.emitChange();

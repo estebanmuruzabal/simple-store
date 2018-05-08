@@ -17,6 +17,7 @@
     font: $font-size-small $font-family-body;
     color: $color-body;
     transition: border-color 0.2s linear, box-shadow 0.2s ease;
+    resize: vertical;
 
     &:hover,
     &:focus {

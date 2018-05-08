@@ -3,8 +3,9 @@
  */
 import React from 'react';
 import connectToStores from 'fluxible-addons-react/connectToStores';
-import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import {Link} from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 // Flux
 import OrderDetailsStore from '../../../../stores/Orders/OrderDetailsStore';
@@ -14,6 +15,7 @@ import IntlStore from '../../../../stores/Application/IntlStore';
 import fetchOrderAndCheckIfFound from '../../../../actions/Orders/fetchOrderAndCheckIfFound';
 import sendOrderEmail from '../../../../actions/Orders/sendOrderEmail';
 import updateOrderStatus from '../../../../actions/Orders/updateOrderStatus';
+import updateShippingDetails from '../../../../actions/Checkout/updateCheckout';
 
 // Required components
 import Button from '../../../common/buttons/Button';
@@ -26,17 +28,15 @@ import Spinner from '../../../common/indicators/Spinner';
 import AdminOrdersSendEmail from './AdminOrdersSendEmail';
 import AdminOrdersUpdateStatus from './AdminOrdersUpdateStatus';
 
-// Translation data for this component
-import intlData from './AdminOrdersEdit.intl';
-
 /**
  * Component
  */
 class AdminOrdersEdit extends React.Component {
 
     static contextTypes = {
-        executeAction: React.PropTypes.func.isRequired,
-        getStore: React.PropTypes.func.isRequired
+        executeAction: PropTypes.func.isRequired,
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Initial State ***//
@@ -61,11 +61,10 @@ class AdminOrdersEdit extends React.Component {
         require('./AdminOrdersEdit.scss');
 
         // Load required data
-        this.context.executeAction(fetchOrderAndCheckIfFound, this.props.params.orderId);
+        this.context.executeAction(fetchOrderAndCheckIfFound, this.props.match.params.orderId);
     }
 
     componentWillReceiveProps(nextProps) {
-
         // Find field error descriptions in request response
         let fieldErrors = {};
         if (nextProps._error && nextProps._error.validation && nextProps._error.validation.keys) {
@@ -129,6 +128,15 @@ class AdminOrdersEdit extends React.Component {
         });
     };
 
+    handleEditShippingDetails = (shippingDetails) => {
+        this.context.executeAction(updateShippingDetails, {
+            checkoutId: this.state.order.checkout.id,
+            data: {
+                shippingDetails: shippingDetails
+            }
+        });
+    };
+
     //*** Template ***//
 
     render() {
@@ -136,14 +144,14 @@ class AdminOrdersEdit extends React.Component {
         //
         // Helper methods & variables
         //
-        let intlStore = this.context.getStore(IntlStore);
-        let routeParams = {locale: this.context.getStore(IntlStore).getCurrentLocale()}; // Base route params
+        let intl = this.context.intl;
+        let locale = intl.locale;
 
         // Return block regarding the send email modal
         let sendEmailModal = () => {
             if (this.state.showEmailModal) {
                 return (
-                    <Modal title={intlStore.getMessage(intlData, 'sendEmailModalTitle')}
+                    <Modal title={intl.formatMessage({id: 'sendEmailModalTitle'})}
                            onCloseClick={this.handleSendEmailCloseClick}>
                         <AdminOrdersSendEmail onCancelClick={this.handleSendEmailCloseClick}
                                               onSubmitClick={this.handleSendEmailSubmitClick}
@@ -159,7 +167,7 @@ class AdminOrdersEdit extends React.Component {
         let updateModal = () => {
             if (this.state.showUpdateModal) {
                 return (
-                    <Modal title={intlStore.getMessage(intlData, 'updateModalTitle')}
+                    <Modal title={intl.formatMessage({id: 'updateModalTitle'})}
                            onCloseClick={this.handleUpdateStatusCloseClick}>
                         <AdminOrdersUpdateStatus onCancelClick={this.handleUpdateStatusCloseClick}
                                                  onSubmitClick={this.handleUpdateStatusSubmitClick}
@@ -181,36 +189,28 @@ class AdminOrdersEdit extends React.Component {
                 <div className="admin-orders-edit__header">
                     <div className="admin-orders-edit__title">
                         <Heading size="medium">
-                            <FormattedMessage message={intlStore.getMessage(intlData, 'title')}
-                                              locales={intlStore.getCurrentLocale()} />
+                            <FormattedMessage id="adminOrdersEditHeader" />
                         </Heading>
                     </div>
                     {this.state.order ?
                         <div className="admin-orders-edit__toolbar">
                             <div className="admin-orders-edit__toolbar-item">
-                                <Link to="adm-orders" params={routeParams}>
+                                <Link to={`/${locale}/adm/orders`}>
                                     <Button type="default" disabled={this.state.loading || this.state.saving}>
-                                        <FormattedMessage message={intlStore.getMessage(intlData, 'back')}
-                                                          locales={intlStore.getCurrentLocale()} />
+                                        <FormattedMessage id="backButton" />
                                     </Button>
                                 </Link>
                             </div>
                             <div className="admin-orders-edit__toolbar-item">
                                 <Button type="primary" onClick={this.handleSendEmailClick} disabled={this.state.loading || this.state.saving}>
-                                    <FormattedMessage message={intlStore.getMessage(intlData, 'sendEmail')}
-                                                      locales={intlStore.getCurrentLocale()} />
+                                    <FormattedMessage id="sendEmailButton" />
                                 </Button>
                             </div>
-                            {['created', 'pendingPayment', 'paid', 'processing', 'ready'].indexOf(this.state.order.status) !== -1 ?
-                                <div className="admin-orders-edit__toolbar-item">
-                                    <Button type="primary" onClick={this.handleUpdateStatusClick} disabled={this.state.loading || this.state.saving}>
-                                        <FormattedMessage message={intlStore.getMessage(intlData, 'updateStatus')}
-                                                          locales={intlStore.getCurrentLocale()} />
-                                    </Button>
-                                </div>
-                                :
-                                null
-                            }
+                            <div className="admin-orders-edit__toolbar-item">
+                                <Button type="primary" onClick={this.handleUpdateStatusClick} disabled={this.state.loading || this.state.saving}>
+                                    <FormattedMessage id="updateButton" />
+                                </Button>
+                            </div>
                         </div>
                         :
                         null
@@ -229,7 +229,9 @@ class AdminOrdersEdit extends React.Component {
                     null
                 }
                 {!this.state.loading && this.state.order ?
-                    <OrderDetails order={this.state.order} />
+                    <OrderDetails
+                        order={this.state.order}
+                        onEditShippingDetails={this.handleEditShippingDetails} />
                     :
                     null
                 }

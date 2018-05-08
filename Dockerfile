@@ -1,4 +1,4 @@
-FROM debian:jessie
+FROM ubuntu:16.04
 
 RUN apt-get update && apt-get install -y \
     build-essential \
@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y \
     supervisor
 
 # Install Node.js
-RUN curl -sL https://deb.nodesource.com/setup_4.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
 RUN apt-get install -y nodejs
 
 # Improve cache invalidations by only running npm if requirements have indeed changed
@@ -16,7 +16,7 @@ COPY package.json /app/
 RUN npm install
 
 # Supervisor settings
-COPY docker/supervisord.conf /etc/supervisor/conf.d/nicistore.conf
+COPY docker/supervisord.conf /etc/supervisor/conf.d/simple-store.conf
 
 # Application source code
 COPY config/ /app/config

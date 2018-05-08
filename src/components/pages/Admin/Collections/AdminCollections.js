@@ -3,14 +3,14 @@
  */
 import React from 'react';
 import connectToStores from 'fluxible-addons-react/connectToStores';
-import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import {Link} from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 // Flux
 import CollectionsAddStore from '../../../../stores/Collections/CollectionsAddStore';
 import CollectionsListStore from '../../../../stores/Collections/CollectionsListStore';
 import CollectionsStore from '../../../../stores/Collections/CollectionsStore';
-import IntlStore from '../../../../stores/Application/IntlStore';
 
 import addCollection from '../../../../actions/Admin/addCollection';
 import fetchCollections from '../../../../actions/Collections/fetchCollections';
@@ -26,24 +26,21 @@ import Text from '../../../common/typography/Text';
 
 import AdminCollectionsAddForm from './AdminCollectionsAddForm';
 
-// Translation data for this component
-import intlData from './AdminCollections.intl';
-
 /**
  * Component
  */
 class AdminCollections extends React.Component {
 
     static contextTypes = {
-        executeAction: React.PropTypes.func.isRequired,
-        getStore: React.PropTypes.func.isRequired,
-        router: React.PropTypes.func.isRequired
+        executeAction: PropTypes.func.isRequired,
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Required Data ***//
 
     static fetchData = function (context, params, query, done) {
-        context.executeAction(fetchCollections, {}, done);
+        return context.executeAction(fetchCollections, {}, done);
     };
 
     //*** Initial State ***//
@@ -68,11 +65,7 @@ class AdminCollections extends React.Component {
         // collection edit page
         if (this.state.addCollection.loading === true
             && nextProps._addCollection.loading === false && !nextProps._addCollection.error) {
-            let params = {
-                locale: this.context.getStore(IntlStore).getCurrentLocale(),
-                collectionId: nextProps._addCollection.collection.id
-            };
-            this.context.router.transitionTo('adm-collection-edit', params);
+            this.props.history.push(`/${this.context.intl.locale}/adm/collections/${nextProps._addCollection.collection.id}`);
         }
 
         // Update state
@@ -103,39 +96,28 @@ class AdminCollections extends React.Component {
         //
         // Helper methods & variables
         //
-
-        let intlStore = this.context.getStore(IntlStore);
-        let routeParams = {locale: this.context.getStore(IntlStore).getCurrentLocale()}; // Base route params
+        let intl = this.context.intl;
+        let locale = intl.locale;
 
         let headings = [
-            <FormattedMessage
-                message={intlStore.getMessage(intlData, 'nameHeading')}
-                locales={intlStore.getCurrentLocale()} />,
-            <FormattedMessage
-                message={intlStore.getMessage(intlData, 'parentHeading')}
-                locales={intlStore.getCurrentLocale()} />,
-            <FormattedMessage
-                message={intlStore.getMessage(intlData, 'tagsHeading')}
-                locales={intlStore.getCurrentLocale()} />,
-            <FormattedMessage
-                message={intlStore.getMessage(intlData, 'enabledHeading')}
-                locales={intlStore.getCurrentLocale()} />
+            <FormattedMessage id="collectionNameHeading" />,
+            <FormattedMessage id="collectionParentHeading" />,
+            <FormattedMessage id="tagsHeading" />,
+            <FormattedMessage id="enabledHeading" />
         ];
 
         let rows = this.state.collections.map((collection) => {
             return {
                 data: [
                     <span className="admin-collections__link">
-                        <Link to="adm-collection-edit" params={Object.assign({collectionId: collection.id}, routeParams)}>
-                            <FormattedMessage
-                                message={intlStore.getMessage(collection.name)}
-                                locales={intlStore.getCurrentLocale()} />
+                        <Link to={`/${locale}/adm/collections/${collection.id}`}>
+                            {collection.name[locale]}
                         </Link>
                     </span>,
                     <Text size="medium">
                         {collection.parentId ?
                             <span>
-                                {intlStore.getMessage(this.context.getStore(CollectionsStore).getCollection(collection.parentId).name)}
+                                {this.context.getStore(CollectionsStore).getCollection(collection.parentId).name[locale]}
                             </span>
                             :
                             <span>-</span>
@@ -147,9 +129,7 @@ class AdminCollections extends React.Component {
                                 return (
                                     <div key={idx} className="admin-collections__label">
                                         <Label>
-                                            <FormattedMessage
-                                                message={intlStore.getMessage(intlData, section)}
-                                                locales={intlStore.getCurrentLocale()} />
+                                            <FormattedMessage id={section} />
                                         </Label>
                                     </div>
                                 );
@@ -164,7 +144,7 @@ class AdminCollections extends React.Component {
         let newCollectionModal = () => {
             if (this.state.showNewCollectionModal) {
                 return (
-                    <Modal title={intlStore.getMessage(intlData, 'newModalTitle')}
+                    <Modal title={intl.formatMessage({id: 'collectionNewModalTitle'})}
                            onCloseClick={this.handleNewCollectionCloseClick}>
                         <AdminCollectionsAddForm
                             loading={this.state.addCollection.loading}
@@ -185,17 +165,13 @@ class AdminCollections extends React.Component {
                 <div className="admin-collections__header">
                     <div className="admin-collections__title">
                         <Heading size="medium">
-                            <FormattedMessage
-                                message={intlStore.getMessage(intlData, 'title')}
-                                locales={intlStore.getCurrentLocale()} />
+                            <FormattedMessage id="adminCollectionsHeader" />
                         </Heading>
                     </div>
                     <div className="admin-collections__toolbar">
                         <div className="admin-collections__add-button">
                             <Button type="primary" onClick={this.handleNewCollectionClick}>
-                                <FormattedMessage
-                                    message={intlStore.getMessage(intlData, 'new')}
-                                    locales={intlStore.getCurrentLocale()} />
+                                <FormattedMessage id="newButton" />
                             </Button>
                         </div>
                     </div>

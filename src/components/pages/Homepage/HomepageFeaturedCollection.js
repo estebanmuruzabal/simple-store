@@ -2,11 +2,9 @@
  * Imports.
  */
 import React from 'react';
-import {Link} from 'react-router';
-import {FormattedMessage} from 'react-intl';
-
-// Flux
-import IntlStore from '../../../stores/Application/IntlStore';
+import {Link} from 'react-router-dom';
+import { injectIntl, intlShape } from 'react-intl';
+import PropTypes from 'prop-types';
 
 // Required components
 import Text from '../../common/typography/Text';
@@ -17,7 +15,8 @@ import Text from '../../common/typography/Text';
 class HomepageFeaturedCollection extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Component Lifecycle ***//
@@ -32,7 +31,7 @@ class HomepageFeaturedCollection extends React.Component {
 
     render() {
 
-        let intlStore = this.context.getStore(IntlStore);
+        let locale = this.context.intl.locale;
 
         if (this.props.feature && this.props.feature.img) {
             return (
@@ -48,9 +47,7 @@ class HomepageFeaturedCollection extends React.Component {
                     <Link to={this.props.feature.link.to} params={this.props.feature.link.params}>
                         <div>
                             <Text size="large">
-                                <FormattedMessage
-                                    message={intlStore.getMessage(this.props.feature.name)}
-                                    locales={intlStore.getCurrentLocale()} />
+                                {this.props.feature.name[locale]}
                             </Text>
                         </div>
                     </Link>

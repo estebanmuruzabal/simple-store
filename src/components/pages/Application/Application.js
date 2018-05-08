@@ -2,20 +2,25 @@
  * Imports
  */
 import React from 'react';
+import async from 'async';
 import connectToStores from 'fluxible-addons-react/connectToStores';
-import {RouteHandler} from 'react-router';
+import { renderRoutes } from 'react-router-config';
+import { injectIntl, intlShape } from 'react-intl';
+import PropTypes from 'prop-types';
 
 import {slugify} from '../../../utils/strings';
+import config from '../../../config';
 
 // Flux
 import AccountStore from '../../../stores/Account/AccountStore';
 import ApplicationStore from '../../../stores/Application/ApplicationStore';
 import CollectionsStore from '../../../stores/Collections/CollectionsStore';
 import DrawerStore from '../../../stores/Application/DrawerStore';
-import IntlStore from '../../../stores/Application/IntlStore';
 import NotificationQueueStore from '../../../stores/Application/NotificationQueueStore';
 import PageLoadingStore from '../../../stores/Application/PageLoadingStore';
 
+import fetchAccountDetails from '../../../actions/Account/fetchAccountDetails';
+import fetchUserLastOrder from '../../../actions/Orders/fetchUserLastOrder';
 import popNotification from '../../../actions/Application/popNotification';
 import triggerDrawer from '../../../actions/Application/triggerDrawer';
 
@@ -30,15 +35,19 @@ import SideMenu from '../../common/navigation/SideMenu';
 
 import PopTopNotification from '../../common/notifications/PopTopNotification';
 
+// Instantiate debugger
+let debug = require('debug')('simple-store');
+
+
 /**
  * Component
  */
 class Application extends React.Component {
 
     static contextTypes = {
-        executeAction: React.PropTypes.func.isRequired,
-        getStore: React.PropTypes.func.isRequired,
-        router: React.PropTypes.func.isRequired
+        executeAction: PropTypes.func.isRequired,
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Initial State ***//
@@ -48,13 +57,12 @@ class Application extends React.Component {
         collectionsTree: this.context.getStore(CollectionsStore).getCollectionsTree(),
         notification: this.context.getStore(NotificationQueueStore).pop(),
         openedDrawer: this.context.getStore(DrawerStore).getOpenedDrawer(),
-        pageLoading: this.context.getStore(PageLoadingStore).isLoading()
+        pageLoading: this.context.getStore(PageLoadingStore).isLoading(),
     };
 
     //*** Component Lifecycle ***//
 
     componentDidMount() {
-
         // Load styles
         require('./Application.scss');
     }
@@ -65,7 +73,7 @@ class Application extends React.Component {
             collectionsTree: nextProps._collectionsTree,
             notification: nextProps._notification,
             openedDrawer: nextProps._openedDrawer,
-            pageLoading: nextProps._pageLoading
+            pageLoading: nextProps._pageLoading,
         });
     }
 
@@ -82,18 +90,13 @@ class Application extends React.Component {
     //*** Template ***//
 
     render() {
-        
-        let intlStore = this.context.getStore(IntlStore);
-
         // Main navigation menu items
+        let locale = this.context.intl.locale;
         let collections = this.state.navCollections.map(function (collection) {
+            let name = collection.name[locale];
             return {
-                name: intlStore.getMessage(collection.name),
-                to: 'collection-slug',
-                params: {
-                    collectionId: collection.id,
-                    collectionSlug: slugify(intlStore.getMessage(collection.name))
-                }
+                name: name,
+                to: `/${locale}/collections/${collection.id}/${slugify(name)}`,
             };
         });
 
@@ -134,6 +137,7 @@ class Application extends React.Component {
                     :
                     null
                 }
+
                 <Drawer position="left" open={this.state.openedDrawer === 'menu'}>
                     <SideMenu collections={collections} />
                 </Drawer>
@@ -151,13 +155,15 @@ class Application extends React.Component {
                         :
                         null
                     }
-                    <Header collections={collections} collectionsTree={this.state.collectionsTree} />
+                    <Header collections={collections}
+                            collectionsTree={this.state.collectionsTree}
+                            location={this.props.location} />
                     <div className="application__container-wrapper">
                         <div className="application__container-content">
-                            <RouteHandler />
+                            {renderRoutes(this.props.route.routes)}
                         </div>
                     </div>
-                    <Footer />
+                    <Footer brandName={config.app.brand}/>
                 </div>
             </div>
         );
@@ -172,14 +178,14 @@ Application = connectToStores(Application, [
     CollectionsStore,
     DrawerStore,
     NotificationQueueStore,
-    PageLoadingStore
+    PageLoadingStore,
 ], (context) => {
     return {
         _navCollections: context.getStore(CollectionsStore).getMainNavigationCollections(),
         _collectionsTree: context.getStore(CollectionsStore).getCollectionsTree(),
         _notification: context.getStore(NotificationQueueStore).pop(),
         _openedDrawer: context.getStore(DrawerStore).getOpenedDrawer(),
-        _pageLoading: context.getStore(PageLoadingStore).isLoading()
+        _pageLoading: context.getStore(PageLoadingStore).isLoading(),
     };
 });
 

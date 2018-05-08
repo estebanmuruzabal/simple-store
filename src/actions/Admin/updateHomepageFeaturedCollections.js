@@ -20,7 +20,7 @@ export default async function updateHomepageFeaturedCollections(context, payload
             return context.api.collections.update(id, payload);
         });
         try {
-            await * promises;
+            await Promise.all(promises);
             context.dispatch(collectionActions.COLLECTIONS_HOMEPAGE_FEATURED_UPDATE_SUCCESS);
             context.dispatch(applicationActions.APPLICATION_POST_NOTIFICATION, {
                 type: 'success',

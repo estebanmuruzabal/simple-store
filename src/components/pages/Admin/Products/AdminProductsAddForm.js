@@ -2,21 +2,16 @@
  * Imports
  */
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
-
-// Flux
-import IntlStore from '../../../../stores/Application/IntlStore';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import PropTypes from 'prop-types';
 
 // Required components
 import Button from '../../../common/buttons/Button';
 import InputField from '../../../common/forms/InputField';
 import Select from '../../../common/forms/Select';
 
-// Translation data for this component
-import intlData from './AdminProductsAddForm.intl';
-
 // Instantiate logger
-let debug = require('debug')('nicistore');
+let debug = require('debug')('simple-store');
 
 /**
  * Component
@@ -24,13 +19,14 @@ let debug = require('debug')('nicistore');
 class AdminProductsAddForm extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Initial State ***//
 
     state = {
-        name: {en: '', pt: ''},
+        name: {uk: '', ru:'', en: ''},
         sku: undefined,
         fieldErrors: {}
     };
@@ -56,18 +52,21 @@ class AdminProductsAddForm extends React.Component {
     };
 
     handleSubmitClick = () => {
-        let intlStore = this.context.getStore(IntlStore);
+        let intl = this.context.intl;
 
         this.setState({fieldErrors: {}});
         let fieldErrors = {};
         if (!this.state.sku) {
-            fieldErrors.sku = intlStore.getMessage(intlData, 'fieldRequired');
+            fieldErrors.sku = intl.formatMessage({id: 'fieldRequired'});
+        }
+        if (!this.state.name.uk) {
+            fieldErrors.nameUA = intl.formatMessage({id: 'fieldRequired'});
+        }
+        if (!this.state.name.ru) {
+            fieldErrors.nameRU = intl.formatMessage({id: 'fieldRequired'});
         }
         if (!this.state.name.en) {
-            fieldErrors.nameEN = intlStore.getMessage(intlData, 'fieldRequired');
-        }
-        if (!this.state.name.pt) {
-            fieldErrors.namePT = intlStore.getMessage(intlData, 'fieldRequired');
+            fieldErrors.nameEN = intl.formatMessage({id: 'fieldRequired'});
         }
         this.setState({fieldErrors: fieldErrors});
 
@@ -87,7 +86,7 @@ class AdminProductsAddForm extends React.Component {
         // Helper methods & variables
         //
 
-        let intlStore = this.context.getStore(IntlStore);
+        let intl = this.context.intl;
 
         let fieldError = (field) => {
             return this.props.error ? this.props.error[field] : this.state.fieldErrors[field];
@@ -99,33 +98,34 @@ class AdminProductsAddForm extends React.Component {
         return (
             <div className="admin-products-add-form">
                 <div className="admin-products-add-form__item">
-                    <InputField label={intlStore.getMessage(intlData, 'sku')}
+                    <InputField label={intl.formatMessage({id: 'skuHeading'})}
                                 onChange={this.handleSKUChange}
                                 error={fieldError('sku')} />
                 </div>
                 <div className="admin-products-add-form__item">
-                    <InputField label={intlStore.getMessage(intlData, 'name') + ' (EN)'}
-                                onChange={this.handleNameChange.bind(null, 'en')}
-                                error={fieldError('nameEN')} />
+                    <InputField label={intl.formatMessage({id: 'name'}) + ' (UA)'}
+                                onChange={this.handleNameChange.bind(null, 'uk')}
+                                error={fieldError('nameUA')} />
                 </div>
                 <div className="admin-products-add-form__item">
-                    <InputField label={intlStore.getMessage(intlData, 'name') + ' (PT)'}
-                                onChange={this.handleNameChange.bind(null, 'pt')}
-                                error={fieldError('namePT')} />
+                    <InputField label={intl.formatMessage({id: 'name'}) + ' (RU)'}
+                                onChange={this.handleNameChange.bind(null, 'ru')}
+                                error={fieldError('nameRU')} />
+                </div>
+                <div className="admin-products-add-form__item">
+                    <InputField label={intl.formatMessage({id: 'name'}) + ' (EN)'}
+                                onChange={this.handleNameChange.bind(null, 'en')}
+                                error={fieldError('nameEN')} />
                 </div>
                 <div className="admin-products-add-form__actions">
                     <div className="admin-products-add-form__button">
                         <Button type="default" onClick={this.props.onCancelClick} disabled={this.props.loading}>
-                            <FormattedMessage
-                                message={intlStore.getMessage(intlData, 'cancel')}
-                                locales={intlStore.getCurrentLocale()} />
+                            <FormattedMessage id="cancelButton" />
                         </Button>
                     </div>
                     <div className="admin-products-add-form__button">
                         <Button type="primary" onClick={this.handleSubmitClick} disabled={this.props.loading}>
-                            <FormattedMessage
-                                message={intlStore.getMessage(intlData, 'add')}
-                                locales={intlStore.getCurrentLocale()} />
+                            <FormattedMessage id="addButton" />
                         </Button>
                     </div>
                 </div>

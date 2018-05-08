@@ -1,6 +1,6 @@
-import keyMirror from 'react/lib/keyMirror';
+import keymirror from 'keymirror';
 
-export default keyMirror({
+export default keymirror({
     CUSTOMERS_FIND: null,
     CUSTOMERS_FIND_SUCCESS: null,
     CUSTOMERS_FIND_ERROR: null

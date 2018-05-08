@@ -2,13 +2,11 @@
  * Imports
  */
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import PropTypes from 'prop-types';
 
 import config from '../../../config';
 import {isValidEmail} from '../../../utils/strings';
-
-// Flux
-import IntlStore from '../../../stores/Application/IntlStore';
 
 // Required components
 import Button from '../buttons/Button';
@@ -17,7 +15,6 @@ import Text from '../typography/Text';
 import InputField from './InputField';
 
 // Translation data for this component
-import intlData from './NewsletterSubscription.intl';
 
 /**
  * Component
@@ -25,7 +22,7 @@ import intlData from './NewsletterSubscription.intl';
 class NewsletterSubscription extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        intl: intlShape.isRequired,
     };
 
     //*** Initial State ***//
@@ -55,11 +52,6 @@ class NewsletterSubscription extends React.Component {
     //*** Template ***//
 
     render() {
-
-        //
-        // Helper methods & variables
-        //
-        let intlStore = this.context.getStore(IntlStore);
 
         // Return the mailchimp default subscription form that will be hidden and triggered by our UI
         let mailChimpForm = () => {
@@ -93,20 +85,19 @@ class NewsletterSubscription extends React.Component {
             <div className="newsletter-subscription">
                 <div className="newsletter-subscription__description">
                     <Text size="small">
-                        <FormattedMessage message={intlStore.getMessage(intlData, 'newsletterDescription')}
-                                          locales={intlStore.getCurrentLocale()} />
+                        <FormattedMessage id="newsletterDescription" />
                     </Text>
                 </div>
                 <div className="newsletter-subscription__content">
                     {mailChimpForm()}
                     <div className="newsletter-subscription__content-item">
-                        <InputField placeholder={intlStore.getMessage(intlData, 'newsletterPlaceholder')}
+                        <InputField placeholder={this.context.intl.formatMessage({id: 'newsletterPlaceholder'})}
                                     onChange={this.handleNewsletterEmailChange} />
                     </div>
                     <div className="newsletter-subscription__content-item">
                         <Button type="primary" onClick={this.handleNewsletterSubmitClick}
                                 disabled={!isValidEmail(this.state.newsletterEmail)}>
-                            {intlStore.getMessage(intlData, 'newsletterSubmitButton')}
+                            {this.context.intl.formatMessage({id: 'newsletterSubmitButton'})}
                         </Button>
                     </div>
                 </div>

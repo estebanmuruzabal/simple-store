@@ -7,7 +7,7 @@ import React from 'react';
 import Button from '../buttons/Button';
 
 // Instantiate logger
-let debug = require('debug')('nicistore');
+let debug = require('debug')('simple-store');
 
 /**
  * Component
@@ -37,7 +37,7 @@ class ImageUpload extends React.Component {
     //*** View Controllers ***//
 
     handlePlaceholderClick = () => {
-        this.refs.input.getDOMNode().click();
+        this.fileInput.click();
     };
 
     handleFileChange = (evt) => {
@@ -64,7 +64,7 @@ class ImageUpload extends React.Component {
     render() {
         return (
             <div className="image-upload">
-                <input ref="input" type="file" className="image-upload__input" onChange={this.handleFileChange} />
+                <input ref={fileInput => this.fileInput = fileInput} type="file" className="image-upload__input" onChange={this.handleFileChange} />
                 <div className="image-upload__placeholder" onClick={this.handlePlaceholderClick}>
                     <img src={this.state.image} />
                 </div>

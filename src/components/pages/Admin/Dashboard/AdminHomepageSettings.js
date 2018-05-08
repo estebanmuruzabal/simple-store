@@ -3,7 +3,8 @@
  */
 import React from 'react';
 import connectToStores from 'fluxible-addons-react/connectToStores';
-import {FormattedMessage} from 'react-intl';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import PropTypes from 'prop-types';
 
 import {move as arrayMove} from '../../../../utils/arrays';
 
@@ -11,7 +12,6 @@ import {move as arrayMove} from '../../../../utils/arrays';
 import ContentsListStore from '../../../../stores/Contents/ContentsListStore';
 import CollectionsStore from '../../../../stores/Collections/CollectionsStore';
 import CollectionsFeaturedHomepage from '../../../../stores/Collections/CollectionsFeaturedHomepage';
-import IntlStore from '../../../../stores/Application/IntlStore';
 
 import bulkBannersUpdate from '../../../../actions/Admin/bulkBannersUpdate';
 import updateHomepageFeaturedCollections from '../../../../actions/Admin/updateHomepageFeaturedCollections';
@@ -23,17 +23,15 @@ import FormLabel from '../../../common/forms/FormLabel';
 import InlineItems from '../../../common/forms/InlineItems';
 import Select from '../../../common/forms/Select';
 
-// Translation data for this component
-import intlData from './AdminHomepageSettings.intl';
-
 /**
  * Component
  */
 class AdminHomepageSettings extends React.Component {
 
     static contextTypes = {
-        executeAction: React.PropTypes.func.isRequired,
-        getStore: React.PropTypes.func.isRequired
+        executeAction: PropTypes.func.isRequired,
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Initial State ***//
@@ -120,11 +118,11 @@ class AdminHomepageSettings extends React.Component {
 
     render() {
 
-        let intlStore = this.context.getStore(IntlStore);
+        let locale = this.context.intl.locale;
 
         let featuredCollectionsOptions = this.state.collections.map(function (collection) {
             return {
-                name: intlStore.getMessage(collection.name),
+                name: collection.name[locale],
                 value: collection.id
             };
         });
@@ -134,8 +132,7 @@ class AdminHomepageSettings extends React.Component {
                 <div className="admin-homepage-settings__ordering-block">
                     <div className="admin-homepage-settings__ordering-label">
                         <FormLabel>
-                            <FormattedMessage message={intlStore.getMessage(intlData, 'orderBanners')}
-                                              locales={intlStore.getCurrentLocale()} />
+                            <FormattedMessage id="orderBanners" />
                         </FormLabel>
                     </div>
                     <div className="admin-homepage-settings__ordering">
@@ -154,9 +151,7 @@ class AdminHomepageSettings extends React.Component {
                                     type="primary"
                                     onClick={this.handleBannerUpdateClick}
                                     loading={this.state.loading}>
-                                <FormattedMessage
-                                    message={intlStore.getMessage(intlData, 'update')}
-                                    locales={intlStore.getCurrentLocale()} />
+                                <FormattedMessage id="updateButton" />
                             </Button>
                         </div>
                     </div>
@@ -164,8 +159,7 @@ class AdminHomepageSettings extends React.Component {
                 <div className="admin-homepage-settings__ordering-block">
                     <div className="admin-homepage-settings__ordering-label">
                         <FormLabel>
-                            <FormattedMessage message={intlStore.getMessage(intlData, 'homepageFeaturedCollections')}
-                                              locales={intlStore.getCurrentLocale()} />
+                            <FormattedMessage id="homepageFeaturedCollections" />
                         </FormLabel>
                     </div>
                     <div className="admin-homepage-settings__ordering">
@@ -184,9 +178,7 @@ class AdminHomepageSettings extends React.Component {
                                     type="primary"
                                     onClick={this.handleFeaturedCollectionsUpdateClick}
                                     disabled={this.state.featuredUpdate.loading}>
-                                <FormattedMessage
-                                    message={intlStore.getMessage(intlData, 'update')}
-                                    locales={intlStore.getCurrentLocale()} />
+                                <FormattedMessage id="updateButton" />
                             </Button>
                         </div>
                     </div>

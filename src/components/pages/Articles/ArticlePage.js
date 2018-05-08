@@ -3,8 +3,9 @@
  */
 import React from 'react';
 import connectToStores from 'fluxible-addons-react/connectToStores';
-import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import {Link} from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 import config from '../../../config';
 
@@ -40,14 +41,15 @@ import intlData from './ArticlePage.intl';
 class ArticlePage extends React.Component {
 
     static contextTypes = {
-        executeAction: React.PropTypes.func.isRequired,
-        getStore: React.PropTypes.func.isRequired
+        executeAction: PropTypes.func.isRequired,
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Required Data ***//
 
     static fetchData = function (context, params, query, done) {
-        context.executeAction(fetchContentAndCheckIfFound, params.contentId, done);
+        return context.executeAction(fetchContentAndCheckIfFound, params.contentId, done);
     };
 
     //*** Page Title and Snippets ***//
@@ -57,7 +59,7 @@ class ArticlePage extends React.Component {
         let content = context.getStore(ContentDetailsStore).getContent();
         if (content && content.type === 'article') {
             return {
-                title: intlStore.getMessage(content.name)
+                title: `${intlStore.getMessage(content.name)} - ${config.app.title[intlStore.getCurrentLocale()]}`
             }
         } else if (content && content.type !== 'article') {
             return {
@@ -132,8 +134,7 @@ class ArticlePage extends React.Component {
         //
         // Helper methods & variables
         //
-        let intlStore = this.context.getStore(IntlStore);
-        let routeParams = {locale: intlStore.getCurrentLocale()}; // Base route params
+        let locale = this.context.intl.locale;
 
         let breadcrumbs;
         if (this.state.content) {
@@ -141,11 +142,8 @@ class ArticlePage extends React.Component {
                 let collection = this.context.getStore(CollectionsStore).getCollection(collectionId);
                 if (collection) {
                     return {
-                        name: <FormattedMessage
-                            message={intlStore.getMessage(collection.name)}
-                            locales={intlStore.getCurrentLocale()} />,
-                        to: 'articles',
-                        params: routeParams
+                        name: collection.name[locale],
+                        to: `/${locale}/articles`,
                     };
                 }
             });
@@ -172,23 +170,23 @@ class ArticlePage extends React.Component {
                             </span>
                             {this.state.content.name ?
                                 <span itemProp="name">
-                                    {intlStore.getMessage(this.state.content.name)}
+                                    {this.state.content.name[locale]}
                                 </span>
                                 :
                                 null
                             }
                             {this.state.content.body && this.state.content.body.summary ?
                                 <span itemProp="headline">
-                                    {intlStore.getMessage(this.state.content.body.summary)}
+                                    {this.state.content.body.summary[locale]}
                                 </span>
                                 :
                                 null
                             }
                             <span itemProp="author">
-                                {config.app.title}
+                                {config.app.brand}
                             </span>
                             <span itemProp="publisher">
-                                {config.app.title}
+                                {config.app.brand}
                             </span>
                         </div>
                         {this.state.content.type === 'article' && this.state.content.body.markdown
@@ -197,16 +195,14 @@ class ArticlePage extends React.Component {
                                 <div className="article-page__header">
                                     <div className="article-page__title">
                                         <Heading size="large">
-                                            <FormattedMessage message={intlStore.getMessage(this.state.content.name)}
-                                                              locales={intlStore.getCurrentLocale()} />
+                                            {this.state.content.name[locale]}
                                         </Heading>
                                         <Breadcrumbs links={breadcrumbs} disableResponsive={true} />
                                     </div>
                                     <div className="article-page__articles-home">
-                                        <Link className="article-page__link" to="articles" params={routeParams}>
+                                        <Link className="article-page__link" to={`/${locale}/articles`} >
                                             <i className="fa fa-chevron-left" aria-hidden="true" />
-                                            <FormattedMessage message={intlStore.getMessage(intlData, 'viewAllArticles')}
-                                                              locales={intlStore.getCurrentLocale()} />
+                                            <FormattedMessage id="viewAllArticles" />
                                         </Link>
                                     </div>
                                 </div>
@@ -215,7 +211,7 @@ class ArticlePage extends React.Component {
                                         <div className="article-page__triangle"></div>
                                         <div className="article-page__markdown" itemProp="articleBody">
                                             <MarkdownHTML>
-                                                {intlStore.getMessage(this.state.content.body.markdown)}
+                                                {this.state.content.body.markdown[locale]}
                                             </MarkdownHTML>
                                         </div>
                                         <div className="article-page__comments">
@@ -234,8 +230,7 @@ class ArticlePage extends React.Component {
                                         <div className="article-page__newsletter">
                                             <div className="article-page__newsletter-cta">
                                                 <Heading size="small">
-                                                    <FormattedMessage message={intlStore.getMessage(intlData, 'newsletterCta')}
-                                                                      locales={intlStore.getCurrentLocale()} />
+                                                    <FormattedMessage id="newsletterCta" />
                                                 </Heading>
                                             </div>
                                             <NewsletterSubscription signupSource={`Article ${this.state.content.id}`} />
@@ -243,8 +238,7 @@ class ArticlePage extends React.Component {
                                         {this.state.suggestions && this.state.suggestions.length > 0 ?
                                             <div className="article-page__product-suggestions">
                                                 <ProductSuggestions products={this.state.suggestions} loading={this.state.suggestionsLoading}>
-                                                    <FormattedMessage message={intlStore.getMessage(intlData, 'suggestedProducts')}
-                                                                      locales={intlStore.getCurrentLocale()} />
+                                                    <FormattedMessage id="suggestedProducts" />
                                                 </ProductSuggestions>
                                             </div>
                                             :
@@ -253,9 +247,7 @@ class ArticlePage extends React.Component {
                                         {this.state.relatedArticles && this.state.relatedArticles.length > 0 ?
                                             <div className="article-page__article-suggestions">
                                                 <ArticleSuggestions articles={this.state.relatedArticles}>
-                                                    <FormattedMessage
-                                                        message={intlStore.getMessage(intlData, 'suggestedArticles')}
-                                                        locales={intlStore.getCurrentLocale()}/>
+                                                    <FormattedMessage id="suggestedArticles" />
                                                 </ArticleSuggestions>
                                             </div>
                                             :
@@ -267,8 +259,7 @@ class ArticlePage extends React.Component {
                             :
                             <div>
                                 <Text>
-                                    <FormattedMessage message={intlStore.getMessage(intlData, 'invalidArticle')}
-                                                      locales={intlStore.getCurrentLocale()} />
+                                    <FormattedMessage id="invalidArticle" />
                                 </Text>
                             </div>
                         }

@@ -2,13 +2,11 @@
  * Imports
  */
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import {Link} from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 import {slugify} from '../../../utils/strings';
-
-// Flux
-import IntlStore from '../../../stores/Application/IntlStore';
 
 // Required components
 import Heading from '../typography/Heading';
@@ -20,7 +18,8 @@ import Text from '../typography/Text';
 class ArticleSuggestions extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Component Lifecycle ***//
@@ -30,12 +29,11 @@ class ArticleSuggestions extends React.Component {
         // Component styles
         require('./ArticleSuggestions.scss');
     }
-    
+
     //*** Template ***//
-    
+
     render() {
-        let intlStore = this.context.getStore(IntlStore);
-        let routeParams = {locale: intlStore.getCurrentLocale()}; // Base route params
+        let locale = this.context.intl.locale;
         return (
             <div className="article-suggestions">
                 {this.props.children ?
@@ -45,10 +43,6 @@ class ArticleSuggestions extends React.Component {
                 }
                 <div className="article-suggestions__list">
                     {this.props.articles.map(function (article) {
-                        let articleRouteParams = Object.assign({
-                            contentId: article.id,
-                            contentSlug: slugify(intlStore.getMessage(article.name))
-                        }, routeParams);
                         return (
                             <div className="article-suggestions__item">
                                 <div className="article-suggestions__item-icon">
@@ -56,11 +50,9 @@ class ArticleSuggestions extends React.Component {
                                 </div>
                                 <div className="article-suggestions__title">
                                     <Link className="article-suggestions__link"
-                                          to="article-slug"
-                                          params={articleRouteParams}>
+                                          to={`/${locale}/articles/${article.id}/${slugify(article.name[locale])}`}>
                                         <Text>
-                                            <FormattedMessage message={intlStore.getMessage(article.name)}
-                                                              locales={intlStore.getCurrentLocale()} />
+                                            {article.name[locale]}
                                         </Text>
                                     </Link>
                                 </div>

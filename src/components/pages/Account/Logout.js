@@ -3,7 +3,10 @@
  */
 import React from 'react';
 import connectToStores from 'fluxible-addons-react/connectToStores';
-import {FormattedMessage} from 'react-intl';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import PropTypes from 'prop-types';
+
+import config from '../../../config';
 
 // Flux
 import AccountStore from '../../../stores/Account/AccountStore';
@@ -23,16 +26,16 @@ import intlData from './Logout.intl';
 class Logout extends React.Component {
 
     static contextTypes = {
-        executeAction: React.PropTypes.func.isRequired,
-        getStore: React.PropTypes.func.isRequired,
-        router: React.PropTypes.func.isRequired
+        executeAction: PropTypes.func.isRequired,
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Page Title and Snippets ***//
 
     static pageTitleAndSnippets = function (context) {
         return {
-            title: context.getStore(IntlStore).getMessage(intlData, 'header')
+            title: `${context.getStore(IntlStore).getMessage(intlData, 'title')} - ${config.app.title[context.getStore(IntlStore).getCurrentLocale()]}`
         }
     };
 
@@ -52,7 +55,7 @@ class Logout extends React.Component {
         require('./Logout.scss');
 
         if (!this.context.getStore(AccountStore).getAccountDetails()) {
-            this.context.router.transitionTo('homepage', {locale: this.context.getStore(IntlStore).getCurrentLocale()});
+            this.props.history.push(`/${this.context.intl.locale}`);
         } else {
             this.context.executeAction(logout);
         }
@@ -61,7 +64,7 @@ class Logout extends React.Component {
     componentWillReceiveProps(nextProps) {
 
         if (!nextProps._accountDetails) {
-            this.context.router.transitionTo('homepage', {locale: this.context.getStore(IntlStore).getCurrentLocale()});
+            this.props.history.push(`/${this.context.intl.locale}`);
         }
 
         this.setState({
@@ -74,15 +77,12 @@ class Logout extends React.Component {
     //*** Template ***//
 
     render() {
-        let intlStore = this.context.getStore(IntlStore);
         return (
             <div className="logout">
                 <div className="logout__container">
                     <div className="logout__header">
                         <Text size="medium">
-                            <FormattedMessage
-                                message={intlStore.getMessage(intlData, 'header')}
-                                locales={intlStore.getCurrentLocale()} />
+                            <FormattedMessage id="logoutHeader" />
                         </Text>
                     </div>
                     <div className="logout__spinner">

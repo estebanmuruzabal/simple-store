@@ -2,23 +2,19 @@
  * Imports
  */
 import React from 'react';
-import {FormattedMessage, FormattedNumber} from 'react-intl';
-
-// Flux
-import IntlStore from '../../../stores/Application/IntlStore';
+import { FormattedMessage, FormattedNumber, injectIntl, intlShape } from 'react-intl';
+import PropTypes from 'prop-types';
 
 // Required components
+import Button from '../../common/buttons/Button';
 import AddressField from '../../common/forms/AddressField';
 import AddressPreview from '../../common/forms/AddressPreview';
 import RadioSelect from '../../common/forms/RadioSelect';
 
 import CheckoutSection from './CheckoutSection';
 
-// Translation data for this component
-import intlData from './CheckoutShippingInformation.intl';
-
 // Instantiate logger
-let debug = require('debug')('nicistore');
+let debug = require('debug')('simple-store');
 
 /**
  * Component
@@ -26,8 +22,10 @@ let debug = require('debug')('nicistore');
 class CheckoutShippingInformation extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
+
 
     //*** Component Lifecycle ***//
 
@@ -44,13 +42,11 @@ class CheckoutShippingInformation extends React.Component {
         //
         // Helper methods & variables
         //
-
-        let intlStore = this.context.getStore(IntlStore);
+        let locale = this.context.intl.locale;
 
         let shippingOptions = (this.props.shippingOptions) ? this.props.shippingOptions.map(function (option) {
             let name = (
-                <FormattedMessage message={intlStore.getMessage(option.name)}
-                                  locales={intlStore.getCurrentLocale()} />
+                <FormattedMessage id={option.name[locale]} />
             );
             let price = (
                 <FormattedNumber
@@ -65,6 +61,7 @@ class CheckoutShippingInformation extends React.Component {
             };
         }) : null;
 
+
         //
         // Return
         //
@@ -76,7 +73,7 @@ class CheckoutShippingInformation extends React.Component {
                                       address={this.props.address}
                                       savedAddresses={this.props.user && this.props.user.addresses}
                                       onSubmit={this.props.onAddressSubmit}
-                                      submitLabel={intlStore.getMessage(intlData, 'save')}
+                                      submitLabel={this.context.intl.formatMessage({id: 'saveButton'})}
                                       loading={this.props.loading} />
                     </div>
                     :
@@ -89,7 +86,7 @@ class CheckoutShippingInformation extends React.Component {
                             <div className="checkout-shipping-information__select-method">
                                 <CheckoutSection number="2.1"
                                                  size="small"
-                                                 title={intlStore.getMessage(intlData, 'shippingMethodLabel')} />
+                                                 title={this.context.intl.formatMessage({id: 'shippingMethodLabel'})} />
                                 <RadioSelect options={shippingOptions}
                                              onChange={this.props.onShippingOptionChange}
                                              value={this.props.shippingMethod} />
@@ -108,9 +105,8 @@ class CheckoutShippingInformation extends React.Component {
  * Default Props
  */
 CheckoutShippingInformation.defaultProps = {
-    onAddressSubmit: function (value) { debug(`onAddressSubmit not defined. Value: ${value}`); },
-    onAddressEditClick: function () { debug('onAddressEditClick not defined'); },
-    onShippingOptionChange: function (value) { debug(`onShippingOptionChange not defined. Value: ${value}`); }
+    onShippingDetailsSubmit: function (value) { debug(`onShippingDetailsSubmit not defined. Value: ${value}`); },
+    onShippingDetailsEditClick: function () { debug('onShippingDetailsEditClick not defined'); },
 };
 
 /**

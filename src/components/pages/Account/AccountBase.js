@@ -2,10 +2,11 @@
  * Imports
  */
 import React from 'react';
-import {RouteHandler} from 'react-router';
+import { renderRoutes } from 'react-router-config';
 
 // Required components
 import AuthenticatedComponent from '../../core/AuthenticatedComponent';
+
 
 /**
  * Component
@@ -17,7 +18,7 @@ class AccountBase extends React.Component {
     render() {
         return (
             <div className="account-base">
-                <RouteHandler />
+                {renderRoutes(this.props.route.routes)}
             </div>
         );
     }

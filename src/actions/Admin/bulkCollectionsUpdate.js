@@ -1,7 +1,7 @@
 import applicationActions from '../../constants/application';
 import collectionActions from '../../constants/collections';
 
-let debug = require('debug')('nicistore');
+let debug = require('debug')('simple-store');
 
 export default async function bulkCollectionsUpdate(context, payload, done) {
     context.dispatch(collectionActions.COLLECTIONS_BULK_SAVE);
@@ -16,7 +16,7 @@ export default async function bulkCollectionsUpdate(context, payload, done) {
         return context.api.collections.update(id, payload);
     });
     try {
-        await * promises;
+        await Promise.all(promises);
         context.dispatch(collectionActions.COLLECTIONS_BULK_SAVE_SUCCESS, payload);
         context.dispatch(applicationActions.APPLICATION_POST_NOTIFICATION, {
             type: 'success',

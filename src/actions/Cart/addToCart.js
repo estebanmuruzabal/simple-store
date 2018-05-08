@@ -11,7 +11,7 @@ import IntlStore from '../../stores/Application/IntlStore';
 import cartActions from '../../constants/cart';
 
 // Instantiate logger
-let debug = require('debug')('nicistore');
+let debug = require('debug')('simple-store');
 
 /**
  * Update cart product

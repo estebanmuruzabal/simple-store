@@ -2,12 +2,10 @@
  * Imports
  */
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import PropTypes from 'prop-types';
 
 import {slugify} from '../../../utils/strings';
-
-// Flux
-import IntlStore from '../../../stores/Application/IntlStore';
 
 // Required components
 import Heading from '../typography/Heading';
@@ -16,16 +14,14 @@ import ProductListItem from './ProductListItem';
 import Text from '../typography/Text';
 import TreeMenu from '../navigation/TreeMenu';
 
-// Translation data for this component
-import intlData from './ProductList.intl';
-
 /**
  * Component
  */
 class ProductList extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Component Lifecycle ***//
@@ -40,10 +36,10 @@ class ProductList extends React.Component {
 
     render() {
 
-        let intlStore = this.context.getStore(IntlStore);
+        let locale = this.context.intl.locale;
 
         let hasDescription = () => {
-            return this.props.collection && this.props.collection.description && this.props.collection.description[intlStore.getCurrentLocale()];
+            return this.props.collection && this.props.collection.description && this.props.collection.description[locale];
         };
 
         return (
@@ -53,13 +49,8 @@ class ProductList extends React.Component {
                         {this.props.filters.map((item, idx) => {
                             let links = item.collections.map((col) => {
                                 return {
-                                    name: intlStore.getMessage(col.name),
-                                    to: 'collection-slug',
-                                    params: {
-                                        locale: intlStore.getCurrentLocale(),
-                                        collectionId: col.id,
-                                        collectionSlug: slugify(intlStore.getMessage(col.name))
-                                    },
+                                    name: col.name,
+                                    to: `/${locale}/collections/${col.id}/${slugify(col.name)}`,
                                     selected: this.props.collection ? col.id === this.props.collection.id : false
                                 };
                             });
@@ -67,9 +58,7 @@ class ProductList extends React.Component {
                                 return (
                                     <div key={idx} className="product-list__filter">
                                         <TreeMenu links={links}>
-                                            <FormattedMessage
-                                                message={intlStore.getMessage(item.name)}
-                                                locales={intlStore.getCurrentLocale()} />
+                                            {item.name[locale]}
                                         </TreeMenu>
                                     </div>
                                 );
@@ -91,7 +80,7 @@ class ProductList extends React.Component {
                     {hasDescription() ?
                         <div className="product-list__collection-description">
                             <Text size="small">
-                                {intlStore.getMessage(this.props.collection.description)}
+                                {this.props.collection.description[locale]}
                             </Text>
                         </div>
                         :
@@ -116,17 +105,15 @@ class ProductList extends React.Component {
                             :
                             <div className="product-list__no-results">
                                 <Text size="medium">
-                                    <FormattedMessage
-                                        message={intlStore.getMessage(intlData, 'noResults')}
-                                        locales={intlStore.getCurrentLocale()} /> :(
+                                    <FormattedMessage id="noResults" /> :(
                                 </Text>
                             </div>
                         }
                     </div>
-                    {this.props.totalPages && this.props.currentPage && this.props.routeParams && this.props.totalPages > 1 ?
+                    {this.props.totalPages && this.props.currentPage && this.props.totalPages > 1 ?
                         <div className="product-list__pagination">
-                            <Pagination to={this.props.paginateTo || 'collection'}
-                                        params={this.props.routeParams}
+                            <Pagination to={this.props.paginateTo || `/${locale}/collections/${this.props.collection.id}`}
+                                        location={this.props.location}
                                         totalPages={this.props.totalPages}
                                         currentPage={this.props.currentPage} />
                         </div>

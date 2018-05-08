@@ -2,7 +2,8 @@
  * Imports
  */
 import React from 'react';
-import {FormattedMessage, FormattedNumber} from 'react-intl';
+import { FormattedMessage, FormattedNumber, injectIntl, intlShape } from 'react-intl';
+import PropTypes from 'prop-types';
 
 // Flux
 import IntlStore from '../../../../stores/Application/IntlStore';
@@ -10,16 +11,14 @@ import IntlStore from '../../../../stores/Application/IntlStore';
 // Required components
 import Text from '../../typography/Text';
 
-// Translation data for this component
-import intlData from './HeaderHighlight.intl';
-
 /**
  * Component
  */
 class HeaderHighlight extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Component Lifecycle ***//
@@ -41,8 +40,7 @@ class HeaderHighlight extends React.Component {
                 </div>
                 <div className="header-highlight__shipping-text">
                     <Text size="small" weight="bold">
-                        <FormattedMessage message={intlStore.getMessage(intlData, 'freeShipping')}
-                                          locales={intlStore.getCurrentLocale()} />
+                        <FormattedMessage id="freeShipping" />
                         &nbsp;
                         <FormattedNumber value="19.90"
                                          style="currency"

@@ -1,16 +1,22 @@
 // App config the for development environment.
 // Do not require this directly. Use ./src/config instead.
-export default {
+module.exports = {
     app: {
-        title: 'NICI Store',
+        brand: 'Simple Store',
+        title: {
+            uk: 'Simple Store',
+            ru: 'Simple Store',
+            en: 'Simple Store',
+        },
         locale: {
-            available: ['en', 'pt'],
-            default: 'en'
+            available: ['uk', 'en', 'ru'],
+            default: 'uk'
         }
     },
     api: {
         atlas: {
-            baseUrl: 'http://localhost:8000/v1'
+            // baseUrl: 'http://localhost:8000/v1'
+            baseUrl: 'http://nicistore.com/api/v1'
         }
     },
     googleAnalytics: {

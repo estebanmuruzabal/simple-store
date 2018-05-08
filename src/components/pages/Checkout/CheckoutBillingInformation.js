@@ -2,7 +2,8 @@
  * Imports
  */
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import PropTypes from 'prop-types';
 
 // Flux
 import IntlStore from '../../../stores/Application/IntlStore';
@@ -16,11 +17,8 @@ import RadioSelect from '../../common/forms/RadioSelect';
 
 import CheckoutSection from './CheckoutSection';
 
-// Translation data for this component
-import intlData from './CheckoutBillingInformation.intl';
-
 // Instantiate logger
-let debug = require('debug')('nicistore');
+let debug = require('debug')('simple-store');
 
 /**
  * Component
@@ -28,7 +26,8 @@ let debug = require('debug')('nicistore');
 class CheckoutBillingInformation extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Initial State ***//
@@ -72,8 +71,7 @@ class CheckoutBillingInformation extends React.Component {
         if (param === 'phone' && (value === '' || !(!isNaN(value) && value.length === 9))) {
             let fieldErrors = this.state.fieldErrors;
             fieldErrors.phone = (
-                <FormattedMessage message={this.context.getStore(IntlStore).getMessage(intlData, 'validNumber')}
-                                  locales={this.context.getStore(IntlStore).getCurrentLocale()} />
+                <FormattedMessage id="validNumber" />
             );
             this.setState({fieldErrors: fieldErrors});
         } else if (param === 'phone') {
@@ -97,21 +95,21 @@ class CheckoutBillingInformation extends React.Component {
         // Helper methods & variables
         //
 
-        let intlStore = this.context.getStore(IntlStore);
+        let intl = this.context.intl;
+        let locale = intl.locale;
 
         let paymentOptions = (this.props.paymentOptions) ? this.props.paymentOptions.map((paymentMethod) => {
             let name = (
-                <FormattedMessage message={intlStore.getMessage(paymentMethod.label)}
-                                  locales={intlStore.getCurrentLocale()} />
+                <FormattedMessage id={paymentMethod.label[locale]} />
             );
             let option = {value: paymentMethod.id, name: name};
             if (paymentMethod.id === 'mbway') {
                 option.children = (
                     <div>
-                        <InputField placeholder={intlStore.getMessage(intlData, 'phoneNumber')}
+                        <InputField placeholder={intl.formatMessage({id: 'phoneNumber'})}
                                     onChange={this.handleInstrumentParamChange.bind(null, 'phone')}
                                     error={this.state.fieldErrors.phone} />
-                    </div>  
+                    </div>
                 );
             }
             return option;
@@ -123,7 +121,7 @@ class CheckoutBillingInformation extends React.Component {
         return (
             <div className="checkout-billing-information">
                 <div className="checkout-billing-information__use-shipping-address">
-                    <Checkbox label={intlStore.getMessage(intlData, 'useShippingAddress')}
+                    <Checkbox label={intl.formatMessage({id: 'useShippingAddress'})}
                               onChange={this.props.onUseShippingAddressChange}
                               checked={this.props.useShippingAddress} />
                 </div>
@@ -133,7 +131,7 @@ class CheckoutBillingInformation extends React.Component {
                                       address={this.props.address}
                                       savedAddresses={this.props.user && this.props.user.addresses}
                                       onSubmit={this.props.onAddressSubmit}
-                                      submitLabel={intlStore.getMessage(intlData, 'save')} />
+                                      submitLabel={intl.formatMessage({id: 'saveButton'})} />
                     </div>
                     :
                     <div className="checkout-billing-information__content">
@@ -147,7 +145,7 @@ class CheckoutBillingInformation extends React.Component {
                             <div className="checkout-billing-information__select-payment-method">
                                 <CheckoutSection number="3.1"
                                                  size="small"
-                                                 title={intlStore.getMessage(intlData, 'paymentMethodLabel')} />
+                                                 title={intl.formatMessage({id: 'paymentMethodLabel'})} />
                                 <RadioSelect options={paymentOptions}
                                              onChange={this.handlePaymentOptionsChange}
                                              value={this.props.paymentMethod} />

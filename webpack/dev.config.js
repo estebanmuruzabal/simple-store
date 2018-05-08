@@ -3,18 +3,20 @@
  */
 let path = require('path');
 let webpack = require('webpack');
+let autoprefixer = require('autoprefixer');
 
 /**
  * Settings
  */
-const host = process.env.HOST || '0.0.0.0';
-const port = (process.env.PORT + 1) || 3001;
+const host = process.env.HOST || '127.0.0.1';
+const port = (process.env.PORT + 1) || 3031;
 const dist = path.resolve(__dirname, '../static/dist');
 
 /**
  * Development settings.
  */
 const config = {
+    mode: 'development',
     entry: [
         'webpack-dev-server/client?http://' + host + ':' + port,
         'webpack/hot/only-dev-server',
@@ -27,13 +29,52 @@ const config = {
         publicPath: 'http://' + host + ':' + port + '/dist/'
     },
     resolve: {
-        extensions: ['', '.js', '.jsx']
+        extensions: ['.js', '.jsx']
     },
     module: {
-        loaders: [
-            {test: /\.(jpe?g|png|gif|svg)$/, loader: 'file'},
-            {test: /\.(js|jsx)$/, exclude: /node_modules/, loader: 'babel?stage=0&optional=runtime'},
-            {test: /\.scss$/, loaders: ['style', 'css', 'autoprefixer?browsers=last 2 version!sass?outputStyle=expanded&sourceMap=true&sourceMapContents=true']}
+        rules: [
+            {
+                test: /\.(jpe?g|png|gif|svg)$/,
+                exclude: /node_modules/,
+                use: 'file-loader'
+            },
+            {
+                test: /\.(js|jsx)$/,
+                exclude: /node_modules/,
+                use: [{
+                    loader: 'babel-loader',
+                }]
+            },
+            {
+                test: /\.scss$/,
+                exclude: /node_modules/,
+                use: [
+                    {
+                        loader: 'style-loader',
+                    },
+                    {
+                        loader: 'css-loader',
+                    },
+                    {
+                        loader: 'postcss-loader',
+                        options: {
+                            ident: 'postcss',
+                            plugins: (loader) => [
+                                 autoprefixer("last 2 version"),
+                            ],
+                            "sourceMap": true,
+                        }
+                    },
+                    {
+                        loader: 'sass-loader',
+                        options: {
+                            "outputStyle": "expanded",
+                            "sourceMap": true,
+                            "sourceMapContents": true,
+                        }
+                    },
+                ]
+            }
         ]
     },
     plugins: [
@@ -52,7 +93,6 @@ const config = {
         }),
         // Protects against multiple React installs when npm linking
         new webpack.NormalModuleReplacementPlugin(/^react?$/, require.resolve('react')),
-        new webpack.NormalModuleReplacementPlugin(/^react(\/addons)?$/, require.resolve('react/addons'))
     ]
 };
 

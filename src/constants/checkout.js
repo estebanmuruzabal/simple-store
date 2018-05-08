@@ -1,6 +1,6 @@
-import keyMirror from 'react/lib/keyMirror';
+import keymirror from 'keymirror';
 
-export default keyMirror({
+export default keymirror({
     CHECKOUT_CREATE: null,
     CHECKOUT_CREATE_SUCCESS: null,
     CHECKOUT_CREATE_ERROR: null,

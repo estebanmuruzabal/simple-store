@@ -2,19 +2,14 @@
  * Imports
  */
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
-
-// Flux
-import IntlStore from '../../../stores/Application/IntlStore';
+import { FormattedMessage } from 'react-intl';
+import PropTypes from 'prop-types';
 
 // Required components
 import Button from '../buttons/Button';
 
-// Translation data for this component
-import intlData from './ImageLibrary.intl';
-
 // Instantiate logger
-let debug = require('debug')('nicistore');
+let debug = require('debug')('simple-store');
 
 /**
  * Component
@@ -22,7 +17,7 @@ let debug = require('debug')('nicistore');
 class ImageLibrary extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired,
     };
 
     //*** Component Lifecycle ***//
@@ -44,11 +39,10 @@ class ImageLibrary extends React.Component {
         images.splice(idx, 1);
         this.props.onChange(images);
     };
-    
+
     //*** Template ***//
-    
+
     render() {
-        let intlStore = this.context.getStore(IntlStore);
         return (
             <div className="image-library">
                 {this.props.images.map((img, idx) => {
@@ -59,14 +53,12 @@ class ImageLibrary extends React.Component {
                                 <div className="image-library__placeholder-overlay-content">
                                     <div className="image-library__button">
                                         <Button type="default" onClick={this.handleViewURLClick.bind(null, idx)}>
-                                            <FormattedMessage message={intlStore.getMessage(intlData, 'viewURL')}
-                                                              locales={intlStore.getCurrentLocale()} />
+                                            <FormattedMessage id="viewURL" />
                                         </Button>
                                     </div>
                                     <div className="image-library__button">
                                         <Button type="primary" onClick={this.handleRemoveClick.bind(null, idx)}>
-                                            <FormattedMessage message={intlStore.getMessage(intlData, 'delete')}
-                                                              locales={intlStore.getCurrentLocale()} />
+                                            <FormattedMessage id="deleteButton" />
                                         </Button>
                                         </div>
                                 </div>

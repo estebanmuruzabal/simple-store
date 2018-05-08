@@ -3,7 +3,10 @@
  */
 import React from 'react';
 import connectToStores from 'fluxible-addons-react/connectToStores';
-import {FormattedMessage} from 'react-intl';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import PropTypes from 'prop-types';
+
+import config from '../../../config';
 
 // Flux
 import IntlStore from '../../../stores/Application/IntlStore';
@@ -27,16 +30,16 @@ import intlData from './ResetConfirm.intl';
 class ResetConfirm extends React.Component {
 
     static contextTypes = {
-        executeAction: React.PropTypes.func.isRequired,
-        getStore: React.PropTypes.func.isRequired,
-        router: React.PropTypes.func.isRequired
+        executeAction: PropTypes.func.isRequired,
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Page Title and Snippets ***//
 
     static pageTitleAndSnippets = function (context) {
         return {
-            title: context.getStore(IntlStore).getMessage(intlData, 'title')
+            title: `${context.getStore(IntlStore).getMessage(intlData, 'title')} - ${config.app.title[context.getStore(IntlStore).getCurrentLocale()]}`
         }
     };
 
@@ -46,8 +49,8 @@ class ResetConfirm extends React.Component {
         loading: this.context.getStore(ResetStore).isLoading(),
         error: this.context.getStore(ResetStore).getError(),
 
-        password: undefined,
-        passwordConfirm: undefined,
+        password: '',
+        passwordConfirm: '',
         fieldErrors: {},
         errorMessage: undefined,
         showSuccessModal: false
@@ -77,7 +80,7 @@ class ResetConfirm extends React.Component {
                 this.setState({errorMessage: nextProps._error.message});
             } else {
                 this.setState({
-                    errorMessage: this.context.getStore(IntlStore).getMessage(intlData, 'unknownError')
+                    errorMessage: this.context.intl.formatMessage({id: 'unknownError'})
                 });
             }
         }
@@ -103,32 +106,30 @@ class ResetConfirm extends React.Component {
 
     handleSubmitClick = () => {
 
-        let intlStore = this.context.getStore(IntlStore);
-
         this.setState({errorMessage: null});
         this.setState({fieldErrors: {}});
         let fieldErrors = {};
         if (!this.state.password) {
-            fieldErrors.password = intlStore.getMessage(intlData, 'fieldRequired');
+            fieldErrors.password = this.context.intl.formatMessage({id: 'fieldRequired'});
         }
         if (!this.state.passwordConfirm) {
-            fieldErrors.passwordConfirm = intlStore.getMessage(intlData, 'fieldRequired');
+            fieldErrors.passwordConfirm = this.context.intl.formatMessage({id: 'fieldRequired'});
         }
         if (this.state.password && this.state.passwordConfirm && this.state.password != this.state.passwordConfirm) {
-            fieldErrors.passwordConfirm = intlStore.getMessage(intlData, 'passwordMismatch');
+            fieldErrors.passwordConfirm = this.context.intl.formatMessage({id: 'passwordMismatch'});
         }
         this.setState({fieldErrors: fieldErrors});
 
         if (Object.keys(fieldErrors).length === 0) {
             this.context.executeAction(resetConfirm, {
-                token: this.props.params.token,
+                token: this.props.match.params.token,
                 password: this.state.password
             });
         }
     };
 
     handleModalContinueClick = () => {
-        this.context.router.transitionTo('login', {locale: this.context.getStore(IntlStore).getCurrentLocale()});
+        this.props.history.push(`/${this.context.intl.locale}/login`);
     };
 
     //*** Template ***//
@@ -138,23 +139,18 @@ class ResetConfirm extends React.Component {
         //
         // Helper methods & variables
         //
-        let intlStore = this.context.getStore(IntlStore);
-
         let successModal = () => {
             if (this.state.showSuccessModal) {
                 return (
-                    <Modal title={intlStore.getMessage(intlData, 'successModalTitle')}>
+                    <Modal title={this.context.intl.formatMessage({id: 'resetConfirmSuccessModalTitle'})}>
                         <div className="reset-confirm__modal-body">
                             <Text size="medium">
-                                <FormattedMessage
-                                    message={intlStore.getMessage(intlData, 'successModalBody')}
-                                    locales={intlStore.getCurrentLocale()} />
+                                <FormattedMessage id="resetConfirmSuccessModalBody" />
                             </Text>
                         </div>
                         <div className="reset-confirm__modal-footer">
                             <Button type="primary" onClick={this.handleModalContinueClick}>
-                                <FormattedMessage message={intlStore.getMessage(intlData, 'successModalContinue')}
-                                                  locales={intlStore.getCurrentLocale()} />
+                                <FormattedMessage id="resetConfirmSuccessModalContinue" />
                             </Button>
                         </div>
                     </Modal>
@@ -171,8 +167,7 @@ class ResetConfirm extends React.Component {
                 <div className="reset-confirm__container">
                     <div className="reset-confirm__header">
                         <Heading>
-                            <FormattedMessage message={intlStore.getMessage(intlData, 'title')}
-                                              locales={intlStore.getCurrentLocale()} />
+                            <FormattedMessage id="resetConfirmHeader" />
                         </Heading>
                     </div>
                     {this.state.errorMessage ?
@@ -185,24 +180,23 @@ class ResetConfirm extends React.Component {
                     <div className="reset-confirm__form">
                         <div className="reset-confirm__form-item">
                             <InputField type="password"
-                                        label={intlStore.getMessage(intlData, 'password')}
+                                        label={this.context.intl.formatMessage({id: 'password'})}
                                         onChange={this.handleFieldChange.bind(null, 'password')}
+                                        value={this.state.password}
                                         onEnterPress={this.handleSubmitClick}
-                                        error={this.state.fieldErrors['password']}
-                                        value={this.state.password} />
+                                        error={this.state.fieldErrors['password']} />
                         </div>
                         <div className="reset-confirm__form-item">
                             <InputField type="password"
-                                        label={intlStore.getMessage(intlData, 'passwordConfirm')}
+                                        label={this.context.intl.formatMessage({id: 'passwordConfirm'})}
                                         onChange={this.handleFieldChange.bind(null, 'passwordConfirm')}
+                                        value={this.state.passwordConfirm}
                                         onEnterPress={this.handleSubmitClick}
-                                        error={this.state.fieldErrors['passwordConfirm']}
-                                        value={this.state.passwordConfirm} />
+                                        error={this.state.fieldErrors['passwordConfirm']} />
                         </div>
                         <div className="reset-confirm__form-actions">
                             <Button type="primary" onClick={this.handleSubmitClick} disabled={this.state.loading}>
-                                <FormattedMessage message={intlStore.getMessage(intlData, 'submit')}
-                                                  locales={intlStore.getCurrentLocale()} />
+                                <FormattedMessage id="resetButton" />
                             </Button>
                         </div>
                     </div>

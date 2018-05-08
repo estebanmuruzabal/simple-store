@@ -3,12 +3,12 @@
  */
 import React from 'react';
 import connectToStores from 'fluxible-addons-react/connectToStores';
-import {FormattedMessage, FormattedNumber} from 'react-intl';
-import {Link} from 'react-router';
+import { FormattedMessage, FormattedNumber, injectIntl, intlShape } from 'react-intl';
+import {Link} from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 // Flux
 import CartStore from '../../../stores/Cart/CartStore';
-import IntlStore from '../../../stores/Application/IntlStore';
 
 import addToCart from '../../../actions/Cart/addToCart';
 import triggerDrawer from '../../../actions/Application/triggerDrawer';
@@ -19,17 +19,15 @@ import CartItem from './CartItem';
 import Heading from '../typography/Heading';
 import Text from '../typography/Text';
 
-// Translation data for this component
-import intlData from './SideCart.intl';
-
 /**
  * Component
  */
 class SideCart extends React.Component {
 
     static contextTypes = {
-        executeAction: React.PropTypes.func.isRequired,
-        getStore: React.PropTypes.func.isRequired
+        executeAction: PropTypes.func.isRequired,
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Initial State ***//
@@ -76,12 +74,7 @@ class SideCart extends React.Component {
 
     render() {
 
-        //
-        // Helper methods and variables
-        //
-
-        let intlStore = this.context.getStore(IntlStore);
-        let routeParams = {locale: intlStore.getCurrentLocale()}; // Base route params
+        let locale = this.context.intl.locale;
 
         // Process Subtotal
         let subTotal = {value: 0, currency: undefined};
@@ -103,9 +96,7 @@ class SideCart extends React.Component {
                     <div>
                         <div className="side-cart__header">
                             <Heading size="small">
-                                <FormattedMessage
-                                    message={intlStore.getMessage(intlData, 'header')}
-                                    locales={intlStore.getCurrentLocale()} />
+                                <FormattedMessage id="sideCartHeader" />
                             </Heading>
                         </div>
                         <div className="side-cart__products">
@@ -121,9 +112,7 @@ class SideCart extends React.Component {
                         <div className="side-cart__subtotal">
                             <div className="side-cart__subtotal-label">
                                 <Text size="medium" transform="uppercase" weight="bold">
-                                    <FormattedMessage
-                                        message={intlStore.getMessage(intlData, 'subtotal')}
-                                        locales={intlStore.getCurrentLocale()} />
+                                    <FormattedMessage id="subtotal" />
                                 </Text>
                             </div>
                             <div className="side-cart__subtotal-value">
@@ -137,18 +126,14 @@ class SideCart extends React.Component {
                         <div className="side-cart__actions">
                             <div className="side-cart__btn">
                                 {!this.state.cartLoading ?
-                                    <Link to="checkout" params={routeParams}>
+                                    <Link to={`/${locale}/checkout`}>
                                         <Button type="primary" onClick={this.handleCheckoutClick} disabled={this.state.cartLoading}>
-                                            <FormattedMessage
-                                                message={intlStore.getMessage(intlData, 'checkout')}
-                                                locales={intlStore.getCurrentLocale()} />
+                                            <FormattedMessage id="checkout" />
                                         </Button>
                                     </Link>
                                     :
                                     <Button type="primary" disabled={true}>
-                                        <FormattedMessage
-                                            message={intlStore.getMessage(intlData, 'checkout')}
-                                            locales={intlStore.getCurrentLocale()} />
+                                        <FormattedMessage id="checkout" />
                                     </Button>
                                 }
                             </div>
@@ -158,16 +143,12 @@ class SideCart extends React.Component {
                     <div className="side-cart__empty">
                         <div className="side-cart__empty-action" onClick={this.handleContinueShoppingClick}>
                             <Text size="small">
-                                <FormattedMessage
-                                    message={intlStore.getMessage(intlData, 'continueShopping')}
-                                    locales={intlStore.getCurrentLocale()} />
+                                <FormattedMessage id="continueShopping" />
                             </Text>
                         </div>
                         <div className="side-cart__empty-message">
                             <Text size="medium" transform="uppercase">
-                                <FormattedMessage
-                                    message={intlStore.getMessage(intlData, 'emptyCart')}
-                                    locales={intlStore.getCurrentLocale()} />
+                                <FormattedMessage id="emptyCart" />
                             </Text>
                         </div>
                     </div>

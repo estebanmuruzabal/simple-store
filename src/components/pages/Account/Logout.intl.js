@@ -1,8 +1,11 @@
 export default {
-    en: {
-        header: 'Logging out...'
+    "uk": {
+        "title": "Вихід"
     },
-    pt: {
-        header: 'Terminando a sessão...'
-    }
+    "ru": {
+        "title": "Выход"
+    },
+    "en": {
+        "title": "Logout"
+    },
 };

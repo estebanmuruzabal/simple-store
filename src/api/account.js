@@ -3,6 +3,7 @@
  */
 import superagent from 'superagent';
 
+let debug = require('debug')('simple-store');
 /**
  * Atlas Account API wrapper
  */

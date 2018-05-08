@@ -2,20 +2,15 @@
  * Imports
  */
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
-
-// Flux
-import IntlStore from '../../../stores/Application/IntlStore';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import PropTypes from 'prop-types';
 
 // Required components
 import Select from '../forms/Select';
 import Text from '../typography/Text';
 
-// Translation data for this component
-import intlData from './ProductsSortingSelect.intl';
-
 // Instantiate logger
-let debug = require('debug')('nicistore');
+let debug = require('debug')('simple-store');
 
 /**
  * Component
@@ -23,7 +18,7 @@ let debug = require('debug')('nicistore');
 class ProductsSortingSelect extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        intl: intlShape.isRequired,
     };
 
     //*** Component Lifecycle ***//
@@ -35,69 +30,50 @@ class ProductsSortingSelect extends React.Component {
     }
 
     //*** Template ***//
-    
-    render() {
 
-        let intlStore = this.context.getStore(IntlStore);
+    render() {
 
         // Sorting Options
         var sortOptions = [
             /*{
-             name: <FormattedMessage
-             message={intlStore.getMessage(intlData, 'sortFeatured')}
-             locales={intlStore.getCurrentLocale()} />,
+             name: this.context.intl.formatMessage({id: "sortFeatured"}),
              value: 'featured'
              },
              {
-             name: <FormattedMessage
-             message={intlStore.getMessage(intlData, 'sortBestSelling')}
-             locales={intlStore.getCurrentLocale()} />,
+             name: this.context.intl.formatMessage({id: "sortBestSelling"}),
              value: 'best-selling'
              },*/
             {
-                name: <FormattedMessage
-                    message={intlStore.getMessage(intlData, 'sortAlphabetically')}
-                    locales={intlStore.getCurrentLocale()} />,
+                name: this.context.intl.formatMessage({id: "sortAlphabetically"}),
                 value: 'alphabetically'
             },
             {
-                name: <FormattedMessage
-                    message={intlStore.getMessage(intlData, 'sortAlphabeticallyReverse')}
-                    locales={intlStore.getCurrentLocale()} />,
+                name: this.context.intl.formatMessage({id: "sortAlphabeticallyReverse"}),
                 value: '-alphabetically'
             },
             {
-                name: <FormattedMessage
-                    message={intlStore.getMessage(intlData, 'sortPrice')}
-                    locales={intlStore.getCurrentLocale()} />,
+                name: this.context.intl.formatMessage({id: "sortPrice"}),
                 value: 'price'
             },
             {
-                name: <FormattedMessage
-                    message={intlStore.getMessage(intlData, 'sortPriceReverse')}
-                    locales={intlStore.getCurrentLocale()} />,
+                name: this.context.intl.formatMessage({id: "sortPriceReverse"}),
                 value: '-price'
             },
             {
-                name: <FormattedMessage
-                    message={intlStore.getMessage(intlData, 'sortRecent')}
-                    locales={intlStore.getCurrentLocale()} />,
+                name: this.context.intl.formatMessage({id: "sortRecent"}),
                 value: '-date'
             },
             {
-                name: <FormattedMessage
-                    message={intlStore.getMessage(intlData, 'sortOldest')}
-                    locales={intlStore.getCurrentLocale()} />,
+                name: this.context.intl.formatMessage({id: "sortOldest"}),
                 value: 'date'
             }
         ];
-        
+
         return (
             <div className="products-sorting-select">
                 <div className="products-sorting-select__label">
                     <Text size="small" weight="bold">
-                        <FormattedMessage message={intlStore.getMessage(intlData, 'sortLabel')}
-                                          locales={intlStore.getCurrentLocale()} />
+                        <FormattedMessage id="sortLabel" />
                     </Text>
                 </div>
                 <div className="products-sorting-select__options">

@@ -3,6 +3,7 @@
  */
 import React from 'react';
 import connectToStores from 'fluxible-addons-react/connectToStores';
+import PropTypes from 'prop-types';
 
 // Flux
 import ResponsiveStore from '../../stores/Application/ResponsiveStore';
@@ -13,7 +14,7 @@ import ResponsiveStore from '../../stores/Application/ResponsiveStore';
 class Breakpoint extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired
     };
 
     //*** Initial State & Defaults ***//

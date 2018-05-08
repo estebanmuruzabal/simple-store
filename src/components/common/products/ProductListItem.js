@@ -2,8 +2,9 @@
  * Imports
  */
 import React from 'react';
-import {FormattedMessage, FormattedNumber} from 'react-intl';
-import {Link} from 'react-router';
+import { FormattedMessage, FormattedNumber, injectIntl, intlShape } from 'react-intl';
+import {Link} from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 import {slugify} from '../../../utils/strings';
 
@@ -19,7 +20,8 @@ import Text from '../typography/Text';
 class ProductListItem extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Initial State ***//
@@ -48,24 +50,14 @@ class ProductListItem extends React.Component {
         //
         // Helper methods & variables
         //
-
-        let intlStore = this.context.getStore(IntlStore);
-
-        // Base route params
-        let routeParams = {locale: intlStore.getCurrentLocale()};
-
-        // Link params for this product
-        let linkParams = Object.assign({
-            productId: this.props.product.id,
-            productSlug: slugify(intlStore.getMessage(this.props.product.name))
-        }, routeParams);
+        let locale = this.context.intl.locale;
 
         //
         // Return
         //
         return (
-            <div className="product-list-item" itemScope itemType="http://schema.org/Product">
-                <Link to="product-slug" params={linkParams}>
+            <div className="product-list-item" itemScope itemType="http://schema.org/Product" itemRef='brand-schema'>
+                <Link to={`/${locale}/products/${this.props.product.id}/${slugify(this.props.product.name[locale])}`}>
                     <div className="product-list-item__image">
                         {this.props.product.images && this.props.product.images.length > 0 ?
                             <span style={{display: 'none'}} itemProp="image">
@@ -82,9 +74,7 @@ class ProductListItem extends React.Component {
                     </div>
                     <div className="product-list-item__name" itemProp="name">
                         <Text size="small">
-                            <FormattedMessage
-                                message={intlStore.getMessage(this.props.product.name)}
-                                locales={intlStore.getCurrentLocale()} />
+                            {this.props.product.name[locale]}
                         </Text>
                         <span style={{display: 'none'}} itemProp="sku">{this.props.product.sku}</span>
                     </div>

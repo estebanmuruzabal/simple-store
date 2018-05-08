@@ -2,6 +2,7 @@
  * Imports
  */
 import React from 'react';
+import PropTypes from 'prop-types';
 
 // Flux
 import ApplicationStore from '../../../stores/Application/ApplicationStore';
@@ -10,7 +11,7 @@ import ApplicationStore from '../../../stores/Application/ApplicationStore';
 import Text from '../typography/Text';
 
 // Instantiate logger
-let debug = require('debug')('nicistore');
+let debug = require('debug')('simple-store');
 
 /**
  * Components
@@ -18,7 +19,7 @@ let debug = require('debug')('nicistore');
 class Checkbox extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired
     };
 
     //*** Component Lifecycle ***//

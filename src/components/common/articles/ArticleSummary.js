@@ -2,20 +2,15 @@
  * Imports
  */
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import {Link} from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 import {slugify} from '../../../utils/strings';
-
-// Flux
-import IntlStore from '../../../stores/Application/IntlStore';
 
 // Required components
 import Heading from '../typography/Heading';
 import Text from '../typography/Text';
-
-// Translation data for this component
-import intlData from './ArticleSummary.intl';
 
 /**
  * Component
@@ -23,7 +18,8 @@ import intlData from './ArticleSummary.intl';
 class ArticleSummary extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Component Lifecycle ***//
@@ -41,20 +37,15 @@ class ArticleSummary extends React.Component {
         //
         // Helper methods & variables
         //
-        let intlStore = this.context.getStore(IntlStore);
-        let routeParams = {locale: intlStore.getCurrentLocale()}; // Base route params
-        let articleRouteParams = Object.assign({
-            contentId: this.props.content.id,
-            contentSlug: slugify(intlStore.getMessage(this.props.content.name))
-        }, routeParams);
+        let locale = this.context.intl.locale;
 
         let headingSize = 'medium';
         if (['small', 'large'].indexOf(this.props.size) !== -1) {
             headingSize = this.props.size;
         }
 
-        let showReadMore = this.props.content.body.markdown && this.props.content.body.markdown[intlStore.getCurrentLocale()]
-            && this.props.content.body.markdown[intlStore.getCurrentLocale()] !== ''
+        let showReadMore = this.props.content.body.markdown && this.props.content.body.markdown[locale]
+            && this.props.content.body.markdown[locale] !== ''
             && !this.props.hideLink;
 
         //
@@ -63,22 +54,15 @@ class ArticleSummary extends React.Component {
         return (
             <div className="article-summary">
                 <Heading size={headingSize}>
-                    <FormattedMessage
-                        message={intlStore.getMessage(this.props.content.name)}
-                        locales={intlStore.getCurrentLocale()} />
+                    {this.props.content.name[locale]}
                 </Heading>
                 <div className="article-summary__content">
                     <Text size="small">
-                        <FormattedMessage
-                            message={intlStore.getMessage(this.props.content.body.summary)}
-                            locales={intlStore.getCurrentLocale()} />
+                        {this.props.content.body.summary[locale]}
                         {showReadMore ?
                             <Link className="article-summary__link"
-                                  to="article-slug"
-                                  params={articleRouteParams}>
-                                <FormattedMessage
-                                    message={intlStore.getMessage(intlData, 'readMore')}
-                                    locales={intlStore.getCurrentLocale()} />
+                                  to={`/${locale}/articles/${this.props.content.id}/${slugify(this.props.content.name[locale])}`}>
+                                <FormattedMessage id="readMore" />
                                 <i className="fa fa-file-text-o" aria-hidden="true" />
                             </Link>
                             :

@@ -3,7 +3,10 @@
  */
 import React from 'react';
 import connectToStores from 'fluxible-addons-react/connectToStores';
-import {FormattedMessage} from 'react-intl';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import PropTypes from 'prop-types';
+
+import config from '../../../config';
 
 // Flux
 import CollectionsStore from '../../../stores/Collections/CollectionsStore';
@@ -26,8 +29,8 @@ import intlData from './ProductListingPage.intl';
 class ProductListingPage extends React.Component {
 
     static contextTypes = {
-        getStore: React.PropTypes.func.isRequired,
-        router: React.PropTypes.func.isRequired
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Required Data ***//
@@ -40,14 +43,14 @@ class ProductListingPage extends React.Component {
         if (query.sort) {
             productsQuery.sort = query.sort;
         }
-        context.executeAction(fetchProducts, productsQuery, done);
+        return context.executeAction(fetchProducts, productsQuery, done);
     };
 
     //*** Page Title and Snippets ***//
 
     static pageTitleAndSnippets = function (context, params, query) {
         return {
-            title: context.getStore(IntlStore).getMessage(intlData, 'pageTitle')
+            title: `${context.getStore(IntlStore).getMessage(intlData, 'title')} - ${config.app.title[context.getStore(IntlStore).getCurrentLocale()]}`
         }
     };
 
@@ -82,9 +85,10 @@ class ProductListingPage extends React.Component {
     //*** View Controllers ***//
 
     handleSortChange = (value) => {
-        this.context.router.transitionTo('products', {
-            locale: this.context.getStore(IntlStore).getCurrentLocale()
-        }, {sort: value});
+        this.props.history.push({
+            pathname: `/${this.context.intl.locale}/products`,
+            search: `?sort=${value}`
+        });
     };
 
     //*** Template ***//
@@ -94,34 +98,27 @@ class ProductListingPage extends React.Component {
         //
         // Helper methods & variables
         //
-
-        let intlStore = this.context.getStore(IntlStore);
-        let routeParams = {locale: intlStore.getCurrentLocale()}; // Base route params
+        let locale = this.context.intl.locale;
 
         // Breadcrumbs
-        var breadcrumbs = [
+        let breadcrumbs = [
             {
-                name: <FormattedMessage
-                    message={intlStore.getMessage(intlData, 'homepage')}
-                    locales={intlStore.getCurrentLocale()} />,
-                to: 'homepage',
-                params: routeParams
+                name: <FormattedMessage id="homepage" />,
+                to: `/${this.context.intl.locale}`,
             },
             {
-                name: <FormattedMessage
-                    message={intlStore.getMessage(intlData, 'productsList')}
-                    locales={intlStore.getCurrentLocale()} />
+                name: <FormattedMessage id="productsList" />
             }
         ];
 
         // Products SideMenu
-        var filters = [
+        let filters = [
             {
-                name: {en: 'Categories', pt: 'Categorias'},
+                name: this.context.intl.formatMessage({id: 'categories'}),
                 collections: this.state.categories
             },
             {
-                name: {en: 'Collections', pt: 'Colecções'},
+                name: this.context.intl.formatMessage({id: 'collections'}),
                 collections: this.state.collections
             }
         ];
@@ -136,11 +133,10 @@ class ProductListingPage extends React.Component {
                         <div className="product-listing-page__breadcrumbs">
                             <Breadcrumbs links={breadcrumbs}>
                                 {this.state.totalPages > 0 ?
-                                    <FormattedMessage
-                                        message={intlStore.getMessage(intlData, 'pagination')}
-                                        locales={intlStore.getCurrentLocale()}
-                                        currentPage={this.state.currentPage}
-                                        totalPages={this.state.totalPages} />
+                                    <FormattedMessage id="pagination"
+                                        values={{
+                                            currentPage: this.state.currentPage,
+                                            totalPages: this.state.totalPages }} />
                                     :
                                     null
                                 }
@@ -152,13 +148,11 @@ class ProductListingPage extends React.Component {
                     </div>
 
                     <div className="product-listing-page__products">
-                        <ProductList title={<FormattedMessage
-                                                    message={intlStore.getMessage(intlData, 'pageTitle')}
-                                                    locales={intlStore.getCurrentLocale()} />}
+                        <ProductList title={<FormattedMessage id="productsHeader" />}
                                      filters={filters}
                                      products={this.state.products}
-                                     paginateTo="products"
-                                     routeParams={routeParams}
+                                     location={this.props.location}
+                                     paginateTo={`/${locale}/products/`}
                                      totalPages={this.state.totalPages}
                                      currentPage={this.state.currentPage} />
                     </div>

@@ -3,10 +3,10 @@
  */
 import React from 'react';
 import connectToStores from 'fluxible-addons-react/connectToStores';
-import {FormattedMessage} from 'react-intl';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import PropTypes from 'prop-types';
 
 // Flux
-import IntlStore from '../../../stores/Application/IntlStore';
 import OrderDetailsStore from '../../../stores/Orders/OrderDetailsStore';
 import fetchOrderAndCheckIfFound from '../../../actions/Orders/fetchOrderAndCheckIfFound';
 
@@ -16,35 +16,33 @@ import NotFound from '../NotFound/NotFound';
 import OrderDetails from '../../common/orders/OrderDetails';
 import Spinner from '../../common/indicators/Spinner';
 
-// Translation data for this component
-import intlData from './AccountOrderDetailsPage.intl';
-
 /**
  * Component
  */
 class AccountOrderDetailsPage extends React.Component {
 
     static contextTypes = {
-        executeAction: React.PropTypes.func.isRequired,
-        getStore: React.PropTypes.func.isRequired
+        executeAction: PropTypes.func.isRequired,
+        getStore: PropTypes.func.isRequired,
+        intl: intlShape.isRequired,
     };
 
     //*** Initial State ***//
 
     state = {
-        order: undefined,
-        loading: true
+        order: this.context.getStore(OrderDetailsStore).getOrder(),
+        loading: this.context.getStore(OrderDetailsStore).isLoading()
     };
-    
+
     //*** Component Lifecycle ***//
-    
+
     componentDidMount() {
 
         // Component styles
         require('./AccountOrderDetailsPage.scss');
 
         // Load required data
-        this.context.executeAction(fetchOrderAndCheckIfFound, this.props.params.orderId);
+        this.context.executeAction(fetchOrderAndCheckIfFound, this.props.match.params.orderId);
     }
 
     componentWillReceiveProps(nextProps) {
@@ -57,13 +55,11 @@ class AccountOrderDetailsPage extends React.Component {
     //*** Template ***//
 
     render() {
-        let intlStore = this.context.getStore(IntlStore);
         return (
             <div className="account-order-details-page">
                 <div className="account-order-details-page__title">
                     <Heading size="medium">
-                        <FormattedMessage message={intlStore.getMessage(intlData, 'title')}
-                                          locales={intlStore.getCurrentLocale()} />
+                        <FormattedMessage id="accountOrderDetailsHeader" />
                     </Heading>
                 </div>
                 {this.state.loading ?
@@ -76,7 +72,7 @@ class AccountOrderDetailsPage extends React.Component {
                             <NotFound />
                             :
                             <div className="account-order-details-page__content">
-                                <OrderDetails order={this.state.order} customerDetails={false} />
+                                <OrderDetails order={this.state.order} customerDetails={this.state.order.customer} />
                             </div>
                         }
                     </div>
