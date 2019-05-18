@@ -1,7 +1,7 @@
 /**
  * Imports
  */
-/*global  document, window */
+/*global document, window */
 import React from 'react';
 import { Route, withRouter } from 'react-router-dom';
 import { matchRoutes } from 'react-router-config';
@@ -10,6 +10,7 @@ import queryString from 'query-string';
 
 import fetchData from './utils/fetchData';
 import fetchPageTitleAndSnippets from './utils/fetchPageTitleAndSnippets';
+import triggerPageLoading from './actions/Application/triggerPageLoading';
 
 import config from './config';
 
@@ -27,6 +28,8 @@ class DataLoader extends React.Component {
         const { routes } = this.props;
 
         if (navigated) {
+            // new navigation - scroll to top
+            this.props.context.executeAction(triggerPageLoading, true);
             // save the location so we can render the old screen
             this.setState({
                 previousLocation: this.props.location
@@ -39,7 +42,9 @@ class DataLoader extends React.Component {
                     let pageTitleAndSnippets = fetchPageTitleAndSnippets(context, branch);
                     // set default title to ukranian language
                     document.title = pageTitleAndSnippets ? pageTitleAndSnippets.title : config.app.title.uk;
+                    window.scrollTo(0, 0);
 
+                    this.props.context.executeAction(triggerPageLoading, false);
                     this.setState({
                         previousLocation: null
                     })

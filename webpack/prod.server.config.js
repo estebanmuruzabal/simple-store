@@ -3,47 +3,40 @@
  */
 var path = require('path');
 var webpack = require('webpack');
-var StatsWriterPlugin = require('webpack-stats-plugin').StatsWriterPlugin;
 var strip = require('strip-loader');
 var autoprefixer = require('autoprefixer');
 var MiniCssExtractPlugin = require("mini-css-extract-plugin");
-var CompressionPlugin = require("compression-webpack-plugin")
 var TerserPlugin = require('terser-webpack-plugin');
 var OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin");
 
 /**
  * Settings
  */
-var dist = path.resolve(__dirname, '../static/dist');
+var dist = path.resolve(__dirname, '../static/server');
 
 /**
  * Production Settings
  */
 var config = {
     mode: 'production',
-    // devtool: 'source-map',
     devtool: false,
-    entry: './src/client.js',
+    entry: './index.js',
+    target: 'node',
     output: {
         path: dist,
-        filename: '[name]-[hash].js',
+        filename: 'server.js',
         chunkFilename: '[name]-[chunkhash].js',
-        publicPath: '/static/dist/'
+        publicPath: '/static/server/'
     },
     optimization: {
         minimizer: [
-            new TerserPlugin({
-                test: /\.js$/,
-                cache: true,
-                terserOptions: {
-                    mangle: {
-                        eval: true,
-                        toplevel: true,
-                    },
-                    warnings: true,
-                    output: {comments: false}
-                }
-            }),
+            // new TerserPlugin({
+            //     test: /\.js$/,
+            //     cache: true,
+            //     terserOptions: {
+            //         output: {comments: false}
+            //     }
+            // }),
             new OptimizeCSSAssetsPlugin({
                 cssProcessorPluginOptions: {
                     preset: ['default', { discardComments: { removeAll: true } }],
@@ -65,6 +58,52 @@ var config = {
                     loader: strip.loader('debug')
                 }, {
                     loader: 'babel-loader',
+                    options: {
+                      "presets": [
+                        [
+                          "@babel/preset-env",
+                          {
+                            "targets": {
+                                "node": "current",
+                                "esmodules": false,
+                            },
+                            "modules": "commonjs",
+                            "useBuiltIns": "usage",
+                            "debug": true,
+                          }
+                        ],
+                        "@babel/preset-react"
+                      ],
+                      "plugins": [
+                        "@babel/plugin-transform-runtime",
+                        "@babel/plugin-syntax-dynamic-import",
+                        "@babel/plugin-syntax-import-meta",
+                        "@babel/plugin-proposal-class-properties",
+                        "@babel/plugin-proposal-json-strings",
+                        [
+                          "@babel/plugin-proposal-decorators",
+                          {
+                            "legacy": true
+                          }
+                        ],
+                        "@babel/plugin-proposal-function-sent",
+                        "@babel/plugin-proposal-export-namespace-from",
+                        "@babel/plugin-proposal-numeric-separator",
+                        "@babel/plugin-proposal-throw-expressions",
+                        "@babel/plugin-proposal-export-default-from",
+                        "@babel/plugin-proposal-logical-assignment-operators",
+                        "@babel/plugin-proposal-optional-chaining",
+                        [
+                          "@babel/plugin-proposal-pipeline-operator",
+                          {
+                            "proposal": "minimal"
+                          }
+                        ],
+                        "@babel/plugin-proposal-nullish-coalescing-operator",
+                        "@babel/plugin-proposal-do-expressions",
+                        "@babel/plugin-proposal-function-bind"
+                      ]
+                    }
                 }],
             },
             {
@@ -113,21 +152,14 @@ var config = {
             filename: '[name]-[chunkhash].css'
         }),
 
-        new CompressionPlugin({
-            test: /\.(js|css|png|jp?eg)/,
-            exclude: /node_modules/,
-            algorithm: 'gzip',
-            filename: '[path].gz[query]',
-            cache: true,
-        }),
-
         // ignore dev config
         new webpack.IgnorePlugin(/\.\/dev/, /\/config$/),
 
         // set global vars
         new webpack.DefinePlugin({
+            'global.GENTLY': false,
             'process.env': {
-                BROWSER: JSON.stringify(true),
+                BROWSER: JSON.stringify(false),
                 NODE_ENV: JSON.stringify('production'),
                 ATLAS_BASE_URL: JSON.stringify(process.env.ATLAS_BASE_URL),
                 GOOGLE_ANALYTICS_TRACKING_ID: JSON.stringify(process.env.GOOGLE_ANALYTICS_TRACKING_ID),
@@ -135,16 +167,6 @@ var config = {
                 CRISP_WEBSITE_ID: JSON.stringify(process.env.CRISP_WEBSITE_ID),
                 MAILCHIMP_SIGNUP_FORM_POST_URL: JSON.stringify(process.env.MAILCHIMP_SIGNUP_FORM_POST_URL),
                 SWITCH_PUBLIC_KEY: JSON.stringify(process.env.SWITCH_PUBLIC_KEY)
-            }
-        }),
-
-        // Write out stats.json file to build directory.
-        new StatsWriterPlugin({
-            transform: function (data) {
-                return JSON.stringify({
-                    css: data.assetsByChunkName.main[0],
-                    main: data.assetsByChunkName.main[1],
-                });
             }
         }),
     ]

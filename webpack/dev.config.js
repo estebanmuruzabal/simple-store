@@ -46,7 +46,7 @@ const config = {
                 }]
             },
             {
-                test: /\.scss$/,
+                test: /\.sc?ss$/,
                 exclude: /node_modules/,
                 use: [
                     {
@@ -74,6 +74,20 @@ const config = {
                         }
                     },
                 ]
+            },
+            {
+                test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+                use: [{
+                    loader: 'url-loader',
+                    options: {
+                        limit: 10000,
+                        minetype: 'application/font-woff',
+                    }
+                }]
+            },
+            {
+                test: /\.(eot|woff|ttf|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+                use: 'file-loader'
             }
         ]
     },

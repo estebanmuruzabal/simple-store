@@ -6,7 +6,7 @@ import Debug from 'debug';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { BrowserRouter } from 'react-router-dom';
-import { matchRoutes, renderRoutes } from 'react-router-config';
+import { renderRoutes } from 'react-router-config';
 import ga from 'react-ga';
 import { FluxibleComponent } from 'fluxible-addons-react';
 import { addLocaleData, IntlProvider } from 'react-intl';
@@ -25,6 +25,7 @@ import {loadIntlPolyfill, loadLocaleData} from './utils/intlClientPolyfill';
 import DataLoader from './dataLoader';
 import config from './config';
 import routes from './routes';
+import app from './app';
 
 
 // Setup and initialize debugging utility.
@@ -49,9 +50,6 @@ function dispatchPageResize(context) {
  * be encapsulated in this method (e.g. fluxible app require, which needs Intl).
  */
 function runApp(locale, messages) {
-
-    var app = require('./app');
-
     // Initialize Google Analytics
     if (config.googleAnalytics.enabled === true) {
         debug('Initialize Google Analytics');
@@ -96,11 +94,11 @@ function runApp(locale, messages) {
             (
                 <FluxibleComponent context={context.getComponentContext()}>
                     <IntlProvider locale={locale} messages={messages}>
-                        <BrowserRouter>
-                            <DataLoader routes={routes}>
-                                {renderRoutes(routes)}
-                            </DataLoader>
-                        </BrowserRouter>
+                          <BrowserRouter>
+                              <DataLoader routes={routes} context={context.getComponentContext()}>
+                                  {renderRoutes(routes)}
+                              </DataLoader>
+                          </BrowserRouter>
                     </IntlProvider>
                 </FluxibleComponent>
             ),

@@ -91,4 +91,4 @@ app.registerStore(ResponsiveStore);
 /**
  * Export
  */
-module.exports = app;
+ export default app;

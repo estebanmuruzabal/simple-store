@@ -3,4 +3,5 @@ rethinkdb_data
 *.log
 .idea
 static/dist
+static/server
 package-lock.json

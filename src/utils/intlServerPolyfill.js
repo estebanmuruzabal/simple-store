@@ -1,15 +1,9 @@
 import areIntlLocalesSupported from 'intl-locales-supported';
-
-let localesMyAppSupports = [
-    /* list locales here */
-    'uk',
-    'ru',
-    'en'
-];
+import config from '../config';
 
 if (global.Intl) {
     // Determine if the built-in `Intl` has the locale data we need.
-    if (!areIntlLocalesSupported(localesMyAppSupports)) {
+    if (!areIntlLocalesSupported(config.app.locale.available)) {
         // `Intl` exists, but it doesn't have the data we need, so load the
         // polyfill and replace the constructors we need with the polyfill's.
         require('intl');

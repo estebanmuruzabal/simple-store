@@ -1,7 +1,7 @@
 /**
  * Imports.
  */
-import async from 'async';
+import {series} from 'async';
 
 /**
  * Fetch data required for components involved in the given route,
@@ -23,7 +23,7 @@ export default async function (context, branch, query) {
     return new Promise(function (resolve, reject) {
         // Series, so that the component hierarchy is respected when fetching data and only start the next
         // after previous was completed.
-        async.series(promises, function (err, results) {
+        series(promises, function (err, results) {
             if (err) {
                 reject(err);
             } else {

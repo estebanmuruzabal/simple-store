@@ -6,10 +6,12 @@ const scripts = [];
 
 if (process.env.NODE_ENV === 'production') {
     // on production, include scripts and css from the webpack stats
-    const config = require('./prod.config');
     const stats = require('../static/dist/stats.json');
-    scripts.push(`${config.output.publicPath}${stats.main}`);
-    css.push(`${config.output.publicPath}${stats.css}`);
+    // const config = require('./prod.config');
+    // scripts.push(`${config.output.publicPath}${stats.main}`);
+    // css.push(`${config.output.publicPath}${stats.css}`);
+    scripts.push(`/static/dist/${stats.main}`);
+    css.push(`/static/dist/${stats.css}`);
 }
 else {
     // on development, use the webpack dev server config

@@ -25,24 +25,25 @@ class BaseHtml extends React.Component {
                     {this.props.css.map((href, idx) => <link key={idx} rel="stylesheet" type="text/css" href={href} />)}
                 </head>
                 <body>
+
                     <div id="app" dangerouslySetInnerHTML={{__html: this.props.markup}}></div>
                     <script dangerouslySetInnerHTML={{__html: this.props.state}}></script>
-                    {this.props.scripts.map((src, idx) => <script src={src} key={idx}></script>)}
+                    {this.props.scripts.map((src, idx) => <script src={src} key={idx} defer></script>)}
                     {config.facebookPixel && config.facebookPixel.enabled === true ?
-                        <script src={`${this.props.staticURL}/vendor/facebook-pixel.js`}></script>
+                        <script src={`${this.props.staticURL}/vendor/facebook-pixel.js`} defer></script>
                         :
                         null
                     }
                     {config.facebookPixel && config.facebookPixel.enabled === true ?
                         <noscript>
-                            <img height="1" width="1" style={{display: 'none'}}
+                            <img height="1" width="1" alt="Facebook Pixel" style={{display: 'none'}}
                                  src={`https://www.facebook.com/tr?id=${config.facebookPixel.id}&ev=PageView&noscript=1`} />
                         </noscript>
                         :
                         null
                     }
                     {config.crisp && config.crisp.enabled === true ?
-                        <script src={`${this.props.staticURL}/vendor/crisp.js`}></script>
+                        <script src={`${this.props.staticURL}/vendor/crisp.js`} defer></script>
                         :
                         null
                     }

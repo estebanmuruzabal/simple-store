@@ -63,12 +63,12 @@ class NewsletterSubscription extends React.Component {
                         <label htmlFor="mce-EMAIL">Subscribe to our mailing list</label>
                         <input type="email" value={this.state.newsletterEmail} name="EMAIL" id="mce-EMAIL" required />
                         {this.props.signupSource ?
-                            <input type="hidden" name="SIGNUP" id="SIGNUP" value={this.props.signupSource} />
+                            <input type="hidden" name="SIGNUP" id="SIGNUP" value={this.props.signupSource} readOnly />
                             :
                             null
                         }
                         <div style={{position: 'absolute', left: '-5000px', ariaHidden: 'true'}}>
-                            <input type="text" name="b_e2f7608a217091f244fd31631_9d4cb32d8c" tabIndex="-1" value="" />
+                            <input type="text" name="b_e2f7608a217091f244fd31631_9d4cb32d8c" readOnly tabIndex="-1" value="" />
                         </div>
                         <div>
                             <input type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" />

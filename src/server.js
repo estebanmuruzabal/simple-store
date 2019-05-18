@@ -8,7 +8,7 @@ import expressStaticGzip from 'express-static-gzip';
 import cookieParser from 'cookie-parser';
 
 import React from 'react';
-import ReactDOMServer from 'react-dom/server';
+import { renderToNodeStream, renderToString, renderToStaticMarkup } from 'react-dom/server';
 import { StaticRouter } from 'react-router-dom';
 import { matchRoutes, renderRoutes } from 'react-router-config';
 import Serialize from 'serialize-javascript';
@@ -54,7 +54,7 @@ addLocaleData([...uk, ...en, ...ru]);
 
 const messages = {};
 
-['uk', 'en', 'ru'].forEach((locale) => {
+config.app.locale.available.forEach((locale) => {
     messages[locale] = require(`../static/localizations/${locale}.json`);
 });
 
@@ -130,13 +130,13 @@ server.use('/static', expressStaticGzip(__dirname + '/../static'));
 
 // 2) If requesting root URL, redirect to default locale
 server.get('/', function (req, res, next) {
-    let defaultLocale = config.app.locale.default || 'en';
+    let defaultLocale = config.app.locale.default || 'uk';
     let userLocale = req.headers['accept-language'] ? req.headers['accept-language'].substring(0,2) : false;
     if(config.app.locale.available.indexOf(userLocale) !== -1) {
         defaultLocale = userLocale;
     }
     debug(`Redirecting to default locale: ${defaultLocale}`);
-    return res.redirect(301, `/${defaultLocale}`);
+    return res.redirect(302, `/${defaultLocale}`);
 });
 
 // 3) Process requested route and render respective React component
@@ -150,10 +150,14 @@ server.use(async function (req, res, next) {
         // - Fetch locale from URL
         // - Check if locale is available/enabled
         // - Trigger respective action
-        let locale = req.path.split('/')[1];
+        let pathArray = req.path.split('/');
+        let locale = pathArray[1];
+        pathArray.splice(0, 2);
+        pathArray.filter(val => !!val);
+
         if (!config.app.locale.available || config.app.locale.available.indexOf(locale) === -1) {
             let NotFoundComponent = React.createFactory(NotFound);
-            let html = ReactDOMServer.renderToStaticMarkup(NotFoundComponent());
+            let html = renderToStaticMarkup(NotFoundComponent());
             return res.status(404).send(html);
         }
         await dispatchSetLocale(context, locale);
@@ -209,28 +213,7 @@ server.use(async function (req, res, next) {
 
             debug('Rendering Application component into html');
 
-            let BaseHtmlComponent = React.createFactory(BaseHtml);
-            let html = ReactDOMServer.renderToStaticMarkup(BaseHtmlComponent({
-                context: context.getComponentContext(),
-                state: exposed,
-                markup: ReactDOMServer.renderToString(
-                    <FluxibleComponent context={context.getComponentContext()}>
-                        <IntlProvider locale={locale} messages={messages[locale]}>
-                            <StaticRouter location={req.url} context={context.getComponentContext()}>
-                                <DataLoader routes={routes}>
-                                    {renderRoutes(routes)}
-                                </DataLoader>
-                            </StaticRouter>
-                        </IntlProvider>
-                    </FluxibleComponent>
-                ),
-                css: webpackStats.css,
-                scripts: webpackStats.scripts,
-                locale: locale,
-                title: (pageTitle && pageTitle.title) || config.app.title[locale],
-                staticURL: '/static'
-            }));
-
+            res.setHeader('Content-Type', 'text/html');
 
             // Figure out appopriate HTTP status code:
             // 1) Not Found component -> 404
@@ -244,15 +227,47 @@ server.use(async function (req, res, next) {
                 // responseStatus = state.routes.some(route => route.name == 'not-found') ? 404 : 200;
             }
 
-            // Return rendered component with appropriate status code.
+            res.status(responseStatus);
+
+            const markup = renderToString(
+                <FluxibleComponent context={context.getComponentContext()}>
+                    <IntlProvider locale={locale} messages={messages[locale]}>
+                          <StaticRouter location={req.url} context={context.getComponentContext()}>
+                              <DataLoader routes={routes} context={context.getComponentContext()}>
+                                  {renderRoutes(routes)}
+                              </DataLoader>
+                          </StaticRouter>
+                    </IntlProvider>
+                </FluxibleComponent>
+            );
+
+            let BaseHtmlComponent = React.createFactory(BaseHtml);
+            const stream = renderToNodeStream(BaseHtmlComponent({
+                context: context.getComponentContext(),
+                state: exposed,
+                markup: markup,
+                css: webpackStats.css,
+                scripts: webpackStats.scripts,
+                locale: locale,
+                url: pathArray.length > 0 ? pathArray.join('/') : false,
+                title: (pageTitle && pageTitle.title) || config.app.title[locale],
+                staticURL: '/static'
+            }));
+
+            res.write('<!DOCTYPE html>');
+
             debug('Sending markup');
-            return res.status(responseStatus).send(html);
+            stream.pipe(res, {end: 'false'});
+
+            stream.on('end', () => {
+                res.end('');
+            })
         });
 
     } catch (err) {
         debug('Unhandled Server Error (Oops!)', err);
         let ServerErrorComponent = React.createFactory(ServerError);
-        let html = ReactDOMServer.renderToStaticMarkup(ServerErrorComponent());
+        let html = renderToStaticMarkup(ServerErrorComponent());
         return res.status(500).send(html);
     }
 });
